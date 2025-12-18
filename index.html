@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Which Sex and the City Girl Are You Today?</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #ffeef8 0%, #fff5f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #5a4a4a;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            padding: 40px 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #d4a5a5;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #8b7a7a;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #f4c2c2 0%, #e8b4b4 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(244, 194, 194, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(244, 194, 194, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-container {
+            margin-bottom: 32px;
+        }
+
+        .question-number {
+            font-size: 14px;
+            color: #c4a5a5;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .question-text {
+            font-size: 20px;
+            color: #5a4a4a;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: #faf8f8;
+            border: 2px solid #f0e8e8;
+            padding: 16px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 15px;
+            color: #5a4a4a;
+            line-height: 1.4;
+        }
+
+        .option:hover {
+            background: #fff5f5;
+            border-color: #f4c2c2;
+            transform: translateX(4px);
+        }
+
+        .option.selected {
+            background: #ffeef8;
+            border-color: #f4c2c2;
+            box-shadow: 0 2px 8px rgba(244, 194, 194, 0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f0e8e8;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f4c2c2 0%, #e8b4b4 100%);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .result-character {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .result-name {
+            font-size: 32px;
+            color: #d4a5a5;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .result-description {
+            font-size: 16px;
+            color: #5a4a4a;
+            line-height: 1.7;
+            margin-bottom: 32px;
+            text-align: left;
+            background: #faf8f8;
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        .final-message {
+            font-size: 15px;
+            color: #8b7a7a;
+            font-style: italic;
+            line-height: 1.6;
+            margin-top: 24px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .result-name {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Start Screen -->
+        <div id="startScreen" class="screen active">
+            <h1>Which Sex and the City Girl Are You Today?</h1>
+            <p class="subtitle">A little love story, told through choices 💕</p>
+            <button class="btn" onclick="startQuiz()">Start Quiz</button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="screen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="question-container">
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="options"></div>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="resultScreen" class="screen">
+            <div class="result-character" id="resultEmoji"></div>
+            <div class="result-name" id="resultName"></div>
+            <div class="result-description" id="resultDescription"></div>
+            <p class="final-message">
+                Some loves are complicated, but they shape who we are 💙<br>
+                And this little game was made just for you.
+            </p>
+            <button class="btn" onclick="resetQuiz()" style="margin-top: 24px;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Character scores
+        let scores = {
+            carrie: 0,
+            miranda: 0,
+            samantha: 0,
+            charlotte: 0
+        };
+
+        let currentQuestion = 0;
+
+        // Quiz questions with subtle SATC references
+        const questions = [
+            {
+                text: "You've been seeing someone amazing, but they're emotionally distant. After weeks of mixed signals, they finally reach out. What do you do?",
+                options: [
+                    { text: "Give them another chance—love is worth the complexity", character: "carrie" },
+                    { text: "Set clear boundaries and see if they can meet your needs", character: "miranda" },
+                    { text: "Move on. Life's too short for games", character: "samantha" },
+                    { text: "Talk it through gently—maybe they just need reassurance", character: "charlotte" }
+                ]
+            },
+            {
+                text: "Your partner keeps canceling plans last minute, but when you're together, everything feels perfect. How do you handle it?",
+                options: [
+                    { text: "Keep hoping they'll change—the connection feels too real to walk away from", character: "carrie" },
+                    { text: "Have a direct conversation about respect and reliability", character: "miranda" },
+                    { text: "Stop making yourself available. You deserve better", character: "samantha" },
+                    { text: "Try to understand their situation and be patient", character: "charlotte" }
+                ]
+            },
+            {
+                text: "You're torn between someone safe and stable, and someone who makes your heart race but brings uncertainty. What guides your choice?",
+                options: [
+                    { text: "Follow your heart, even if it's complicated", character: "carrie" },
+                    { text: "Choose stability—emotions can be unreliable", character: "miranda" },
+                    { text: "Go with what excites you—you can handle the uncertainty", character: "samantha" },
+                    { text: "Look for someone who offers both safety and passion", character: "charlotte" }
+                ]
+            },
+            {
+                text: "After months apart, someone from your past returns with a grand gesture. They say they've changed. How do you respond?",
+                options: [
+                    { text: "Consider it—maybe timing was the issue before", character: "carrie" },
+                    { text: "Be cautious. Past patterns often repeat themselves", character: "miranda" },
+                    { text: "Enjoy the moment, but keep your options open", character: "samantha" },
+                    { text: "Give them a chance if they're truly showing growth", character: "charlotte" }
+                ]
+            },
+            {
+                text: "You're in a relationship that's good on paper, but something feels missing. Your friends think you should stay. What do you do?",
+                options: [
+                    { text: "Listen to your heart—you can't ignore that feeling", character: "carrie" },
+                    { text: "Analyze what's missing and see if it's fixable", character: "miranda" },
+                    { text: "Trust your gut and make space for what you really want", character: "samantha" },
+                    { text: "Work on finding the missing piece together", character: "charlotte" }
+                ]
+            },
+            {
+                text: "Someone you care about keeps coming back into your life, but never fully commits. You're tired of the cycle. What's your move?",
+                options: [
+                    { text: "Keep the door open—maybe this time will be different", character: "carrie" },
+                    { text: "Close the door. You need consistency, not promises", character: "miranda" },
+                    { text: "Enjoy the connection when it's there, but don't wait around", character: "samantha" },
+                    { text: "Have one honest conversation about what you both want", character: "charlotte" }
+                ]
+            },
+            {
+                text: "You're choosing between a weekend plan: a romantic getaway with someone new, or a quiet night with close friends. What calls to you?",
+                options: [
+                    { text: "The romantic getaway—love stories are worth exploring", character: "carrie" },
+                    { text: "Time with friends—they're your real support system", character: "miranda" },
+                    { text: "The getaway—new experiences are always worth it", character: "samantha" },
+                    { text: "Friends, but maybe invite the new person along", character: "charlotte" }
+                ]
+            },
+            {
+                text: "You've been waiting for someone to be ready for a real relationship. They keep saying 'soon.' How long do you wait?",
+                options: [
+                    { text: "As long as it takes—if the connection is real, it's worth waiting for", character: "carrie" },
+                    { text: "Set a timeline. If they're not ready, you need to move forward", character: "miranda" },
+                    { text: "Don't wait. Live your life and let them catch up if they want", character: "samantha" },
+                    { text: "Give them a gentle deadline and see if they step up", character: "charlotte" }
+                ]
+            },
+            {
+                text: "You're at a crossroads: pursue a career opportunity in another city, or stay for a relationship that's just starting to deepen. What do you choose?",
+                options: [
+                    { text: "Stay—love might be the bigger opportunity", character: "carrie" },
+                    { text: "Take the career move—you can make long distance work if it's meant to be", character: "miranda" },
+                    { text: "Go for the career—you'll find love wherever you are", character: "samantha" },
+                    { text: "Try to find a way to have both—compromise is possible", character: "charlotte" }
+                ]
+            },
+            {
+                text: "Someone tells you they love you, but their actions don't always match their words. How do you respond?",
+                options: [
+                    { text: "Believe the words and hope the actions will follow", character: "carrie" },
+                    { text: "Actions speak louder. Address the inconsistency directly", character: "miranda" },
+                    { text: "Take it for what it is—enjoy the moment, but don't overthink it", character: "samantha" },
+                    { text: "Express your need for consistency and see if they understand", character: "charlotte" }
+                ]
+            }
+        ];
+
+        // Character results
+        const characters = {
+            carrie: {
+                emoji: "💕",
+                name: "You're a Carrie",
+                description: "You're a romantic at heart, drawn to the complexity of love and relationships. You believe in second chances and the power of connection, even when it's complicated. Like Carrie, you're reflective, emotional, and willing to follow your heart—even when logic suggests otherwise. You understand that some loves are messy, but you're not afraid to explore them. Your romantic nature means you see the beauty in complicated stories, and you're always searching for that deep, meaningful connection that makes everything else fade away."
+            },
+            miranda: {
+                emoji: "💼",
+                name: "You're a Miranda",
+                description: "You're practical, strong, and value honesty above all. Like Miranda, you're not afraid to speak your truth and set boundaries. You believe in logic, reliability, and building relationships on a solid foundation. You're career-focused and independent, and you don't have time for games or mixed signals. You know your worth and expect others to meet you at your level. While you're not opposed to romance, you want it to be real, consistent, and built on mutual respect. You're the friend people turn to for honest advice, and you're not afraid to make tough decisions when they're necessary."
+            },
+            samantha: {
+                emoji: "✨",
+                name: "You're a Samantha",
+                description: "You're confident, bold, and unapologetically yourself. Like Samantha, you live life on your own terms and don't wait around for anyone. You're fearless in relationships and know that you deserve the best. You're not afraid to walk away from situations that don't serve you, and you believe in living in the moment. You're independent, free-spirited, and you know that you don't need anyone to complete you—you're already whole. You embrace your desires and aren't afraid to go after what you want, whether it's in love, career, or life in general."
+            },
+            charlotte: {
+                emoji: "🌹",
+                name: "You're a Charlotte",
+                description: "You're kind, romantic, and believe in the power of love and tradition. Like Charlotte, you're emotionally sensitive and value deep, meaningful connections. You're optimistic about relationships and believe in working through challenges together. You're nurturing and caring, always trying to understand others and create harmony. You believe in fairy tales and happy endings, but you're also willing to put in the work to make them happen. You're traditional in your values but open to growth, and you believe that love, when it's real, is worth fighting for and building something beautiful together."
+            }
+        };
+
+        function startQuiz() {
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.add('active');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = questions[currentQuestion];
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
+            document.getElementById('questionText').textContent = question.text;
+            
+            // Update progress bar
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            
+            // Clear and populate options
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option.text;
+                optionElement.onclick = () => selectOption(index, option.character);
+                optionsContainer.appendChild(optionElement);
+            });
+        }
+
+        function selectOption(index, character) {
+            // Add score
+            scores[character]++;
+            
+            // Visual feedback
+            const options = document.querySelectorAll('.option');
+            options[index].classList.add('selected');
+            
+            // Move to next question after a brief delay
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 500);
+        }
+
+        function showResult() {
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('resultScreen').classList.add('active');
+            
+            // Find character with highest score
+            let maxScore = 0;
+            let resultCharacter = 'carrie';
+            
+            for (const [character, score] of Object.entries(scores)) {
+                if (score > maxScore) {
+                    maxScore = score;
+                    resultCharacter = character;
+                }
+            }
+            
+            // Handle ties (prefer carrie, then charlotte, then miranda, then samantha)
+            if (maxScore === scores.carrie && scores.carrie === scores.charlotte) {
+                resultCharacter = 'carrie';
+            } else if (maxScore === scores.miranda && scores.miranda === scores.samantha) {
+                resultCharacter = 'miranda';
+            }
+            
+            const result = characters[resultCharacter];
+            document.getElementById('resultEmoji').textContent = result.emoji;
+            document.getElementById('resultName').textContent = result.name;
+            document.getElementById('resultDescription').textContent = result.description;
+        }
+
+        function resetQuiz() {
+            // Reset scores and question index
+            scores = {
+                carrie: 0,
+                miranda: 0,
+                samantha: 0,
+                charlotte: 0
+            };
+            currentQuestion = 0;
+            
+            // Show start screen
+            document.getElementById('resultScreen').classList.remove('active');
+            document.getElementById('startScreen').classList.add('active');
+        }
+    </script>
+</body>
+</html>
