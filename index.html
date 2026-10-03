@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ffdfee">
+    <meta name="description" content="Fly Carrie, Samantha, Miranda or Charlotte through the Manhattan skyline.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="SATC">
     <title>SATC: Heels Over Manhattan</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/png" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap">
@@ -302,6 +309,22 @@
             color: #b0708a;
         }
 
+        [hidden] { display: none !important; }
+
+        .share-row {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+        }
+
+        .install-tip {
+            font-size: 12px;
+            color: #8b5a6a;
+            max-width: 260px;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
         .menu-link {
             margin-top: 12px;
             font-size: 13px;
@@ -333,6 +356,8 @@
             <button class="btn" id="playBtn">Play</button>
             <p class="hint">Tap, click or press Space to flap</p>
             <a class="small-link" href="quiz.html">Not sure? Take the quiz →</a>
+            <button class="menu-link" id="installBtn" hidden>📲 Install on your phone</button>
+            <p class="install-tip" id="installTip" hidden></p>
         </div>
 
         <!-- Paused -->
@@ -369,7 +394,10 @@
                 <span class="new-best" id="newBest">New best!</span>
             </div>
             <button class="btn" id="retryBtn">Play Again</button>
-            <button class="menu-link" id="menuBtn">Change girl</button>
+            <div class="share-row">
+                <button class="menu-link" id="shareBtn">Share score</button>
+                <button class="menu-link" id="menuBtn">Change girl</button>
+            </div>
         </div>
     </div>
 
@@ -1537,6 +1565,61 @@
                 ctx.fillStyle = `rgba(255, 255, 255, ${flash * 0.7})`;
                 ctx.fillRect(0, 0, W, H);
             }
+        }
+
+        // ---------- Share, install & offline ----------
+        const shareBtn = document.getElementById('shareBtn');
+        shareBtn.addEventListener('click', async () => {
+            const text = `I scored ${score} as ${GIRLS[girlKey].name} in SATC: Heels Over Manhattan! 🍸 Can you beat me?`;
+            const url = location.protocol.startsWith('http') ? location.href.split('#')[0] : '';
+            try {
+                if (navigator.share) {
+                    await navigator.share({ title: 'SATC: Heels Over Manhattan', text, url });
+                    return;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return;
+            }
+            try {
+                await navigator.clipboard.writeText(url ? `${text} ${url}` : text);
+                shareBtn.textContent = 'Copied!';
+            } catch (e) {
+                shareBtn.textContent = 'Could not share';
+            }
+            setTimeout(() => { shareBtn.textContent = 'Share score'; }, 1800);
+        });
+
+        const installBtn = document.getElementById('installBtn');
+        const installTip = document.getElementById('installTip');
+        const standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        let installPrompt = null;
+
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            installPrompt = e;
+            if (!standalone) installBtn.hidden = false;
+        });
+        window.addEventListener('appinstalled', () => { installBtn.hidden = true; installTip.hidden = true; });
+
+        // iPhone has no install prompt, so explain the Safari steps instead.
+        if (isIOS && !standalone && location.protocol.startsWith('http')) installBtn.hidden = false;
+
+        installBtn.addEventListener('click', async () => {
+            if (installPrompt) {
+                installPrompt.prompt();
+                await installPrompt.userChoice.catch(() => {});
+                installPrompt = null;
+                installBtn.hidden = true;
+            } else {
+                installTip.textContent = 'In Safari, tap the Share button, then "Add to Home Screen".';
+                installTip.hidden = false;
+            }
+        });
+
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
         }
 
         // ---------- Main loop (fixed timestep for consistent physics) ----------
