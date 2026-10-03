@@ -496,12 +496,13 @@
         // ---------- Audio ----------
         let audio = null;
         function ensureAudio() {
-            if (audio) {
-                if (audio.state === 'suspended') audio.resume();
-                return;
+            if (!audio) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                audio = new AC();
             }
-            const AC = window.AudioContext || window.webkitAudioContext;
-            if (AC) audio = new AC();
+            if (audio.state === 'suspended') audio.resume();
+            if (state !== 'paused') startMusic();
         }
 
         function tone(freq, dur, type = 'sine', vol = 0.15, slideTo = null, delay = 0) {
@@ -528,6 +529,122 @@
             honk: () => { tone(392, 0.12, 'square', 0.04); tone(392, 0.14, 'square', 0.04, null, 0.16); }
         };
 
+        // ---------- Background music ----------
+        // An original Latin-flavoured loop: son clave, congas, shaker, tumbao bass,
+        // piano stabs and a bright melody over Cmaj7 | Am7 | Dm7 | G7 (8 bars).
+        const BPM = 112;
+        const STEP16 = 60 / BPM / 4;
+        const MUSIC_VOL = 0.55;
+        const midi = m => 440 * Math.pow(2, (m - 69) / 12);
+
+        const CHORDS = [[60, 64, 67, 71], [57, 60, 64, 67], [57, 62, 65, 69], [59, 62, 65, 67]];
+        const ROOTS = [36, 33, 38, 31];
+        const CLAVE = [0, 3, 6, 10, 12];
+        const STABS = [2, 6, 10, 13];
+        // [step within the 8-bar loop, midi note, length in 16ths]
+        const MELODY = [
+            [0, 76, 2], [2, 79, 2], [4, 81, 3], [8, 79, 2], [11, 76, 3],
+            [16, 84, 3], [20, 81, 2], [22, 79, 2], [26, 76, 4],
+            [32, 77, 2], [34, 81, 2], [36, 84, 3], [40, 81, 2], [43, 77, 2], [46, 76, 2],
+            [48, 74, 4], [54, 71, 2], [56, 74, 2], [60, 79, 4],
+            [64, 76, 2], [66, 79, 2], [68, 84, 3], [72, 83, 2], [74, 81, 2], [76, 79, 3],
+            [80, 81, 3], [84, 76, 2], [86, 79, 2], [88, 81, 4],
+            [96, 77, 2], [98, 76, 2], [100, 74, 2], [102, 77, 2], [104, 81, 4], [110, 84, 2],
+            [112, 83, 3], [116, 79, 2], [118, 77, 2], [120, 74, 4], [126, 79, 2]
+        ];
+        const melodyAt = {};
+        for (const n of MELODY) melodyAt[n[0]] = n;
+
+        let musicGain = null, noiseBuf = null, musicTimer = null, musicStep = 0, nextNoteT = 0;
+
+        function voice(freq, t, dur, type, vol, slideTo = null) {
+            const osc = audio.createOscillator();
+            const g = audio.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.linearRampToValueAtTime(vol, t + 0.005);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            osc.connect(g).connect(musicGain);
+            osc.start(t);
+            osc.stop(t + dur + 0.02);
+        }
+
+        function shaker(t, vol) {
+            const src = audio.createBufferSource();
+            src.buffer = noiseBuf;
+            const hp = audio.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.value = 7000;
+            const g = audio.createGain();
+            g.gain.setValueAtTime(vol, t);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+            src.connect(hp).connect(g).connect(musicGain);
+            src.start(t);
+            src.stop(t + 0.06);
+        }
+
+        function playStep(step, t) {
+            const s = step % 16;
+            const bar = Math.floor(step / 16) % 4;
+            const chord = CHORDS[bar];
+
+            shaker(t, s % 2 ? 0.05 : 0.025);
+            if (CLAVE.includes(s)) voice(2400, t, 0.04, 'sine', 0.06);
+            // Congas: open tones and a slap
+            if (s === 7 || s === 14 || s === 15) voice(330 * 1.4, t, 0.16, 'sine', 0.16, 330);
+            if (s === 3 || s === 11) voice(220 * 1.4, t, 0.2, 'sine', 0.16, 220);
+            if (s === 6) voice(520, t, 0.05, 'triangle', 0.08, 300);
+            // Tumbao bass: root, anticipated fifth, octave
+            if (s === 0) voice(midi(ROOTS[bar]), t, STEP16 * 3, 'triangle', 0.22);
+            if (s === 6) voice(midi(ROOTS[bar] + 7), t, STEP16 * 4, 'triangle', 0.2);
+            if (s === 12) voice(midi(ROOTS[bar] + 12), t, STEP16 * 3, 'triangle', 0.18);
+            // Piano stabs
+            if (STABS.includes(s)) for (const m of chord) voice(midi(m), t, 0.14, 'triangle', 0.025);
+            // Melody, bell-ish with an octave shimmer
+            const n = melodyAt[step % 128];
+            if (n) {
+                voice(midi(n[1]), t, STEP16 * n[2] * 1.1, 'triangle', 0.07);
+                voice(midi(n[1] + 12), t, STEP16 * n[2] * 0.6, 'sine', 0.018);
+            }
+        }
+
+        function scheduleMusic() {
+            if (nextNoteT < audio.currentTime) nextNoteT = audio.currentTime + 0.02;
+            while (nextNoteT < audio.currentTime + 0.15) {
+                playStep(musicStep, nextNoteT);
+                nextNoteT += STEP16;
+                musicStep = (musicStep + 1) % 128;
+            }
+        }
+
+        function startMusic() {
+            if (!audio || musicTimer) return;
+            if (!musicGain) {
+                musicGain = audio.createGain();
+                musicGain.connect(audio.destination);
+                noiseBuf = audio.createBuffer(1, audio.sampleRate * 0.1, audio.sampleRate);
+                const d = noiseBuf.getChannelData(0);
+                for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+            }
+            setMusicLevel();
+            nextNoteT = audio.currentTime + 0.05;
+            musicTimer = setInterval(scheduleMusic, 25);
+        }
+
+        function stopMusic() {
+            clearInterval(musicTimer);
+            musicTimer = null;
+        }
+
+        // Quieter on the game-over screen, silent when muted.
+        function setMusicLevel() {
+            if (!musicGain) return;
+            const level = muted ? 0 : (state === 'dead' ? MUSIC_VOL * 0.4 : MUSIC_VOL);
+            musicGain.gain.setTargetAtTime(level, audio.currentTime, 0.1);
+        }
+
         const muteBtn = document.getElementById('muteBtn');
         function renderMute() { muteBtn.textContent = muted ? '🔇' : '🔊'; }
         renderMute();
@@ -537,6 +654,7 @@
             save('hom_muted', muted ? 1 : 0);
             renderMute();
             ensureAudio();
+            setMusicLevel();
         });
 
         // ---------- Game state ----------
@@ -679,6 +797,7 @@
         function startGame() {
             reset();
             state = 'play';
+            setMusicLevel();
             showOverlay(null);
             player.vy = FLAP_VY;
             sfx.flap();
@@ -687,18 +806,26 @@
         function toMenu() {
             reset();
             state = 'menu';
+            setMusicLevel();
             showOverlay('menu');
         }
 
-        function pause() { state = 'paused'; showOverlay('paused'); }
-        function resume() { state = 'play'; showOverlay(null); lastT = performance.now(); }
+        function pause() { state = 'paused'; stopMusic(); showOverlay('paused'); }
+        function resume() { state = 'play'; showOverlay(null); lastT = performance.now(); if (audio) startMusic(); }
 
         document.getElementById('playBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
         document.getElementById('retryBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
         document.getElementById('menuBtn').addEventListener('click', toMenu);
         document.getElementById('resumeBtn').addEventListener('click', resume);
         pauseBtn.addEventListener('click', pause);
-        document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') pause(); });
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (state === 'play') pause();
+                stopMusic();
+            } else if (audio && state !== 'paused') {
+                startMusic();
+            }
+        });
 
         // ---------- Game over ----------
         const RANKS = [
@@ -716,6 +843,7 @@
         function die(cause) {
             if (state !== 'play') return;
             state = 'dead';
+            setMusicLevel();
             deadAt = performance.now();
             shake = 12;
             flash = 1;
