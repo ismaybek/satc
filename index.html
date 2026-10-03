@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#ffdfee">
-    <title>Heels Over Manhattan</title>
+    <title>SATC: Heels Over Manhattan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&display=swap">
     <style>
         * {
             margin: 0;
@@ -37,7 +40,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
-        canvas {
+        canvas#game {
             display: block;
             width: 100%;
             height: 100%;
@@ -51,7 +54,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 24px;
+            padding: 20px;
             pointer-events: none;
         }
 
@@ -69,34 +72,42 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        #menu {
-            justify-content: flex-start;
-            padding-top: 14%;
+        /* SATC wordmark */
+        .satc {
+            font-family: 'Playfair Display', 'Didot', 'Bodoni 72', Georgia, serif;
+            font-weight: 900;
+            font-size: 76px;
+            line-height: 0.9;
+            letter-spacing: 4px;
+            color: #fff;
+            text-shadow: 0 3px 0 #d98aa8, 0 8px 22px rgba(160, 80, 110, 0.4);
         }
 
-        #menu .tagline {
-            margin-bottom: 130px; /* leave room for the hovering shoe */
+        .satc-sub {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #b0607f;
+            margin-top: 6px;
         }
 
         .title {
-            font-size: 34px;
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 24px;
             line-height: 1.1;
-            font-weight: 800;
+            font-weight: 900;
             color: #fff;
-            text-shadow: 0 3px 0 #d98aa8, 0 6px 16px rgba(160, 80, 110, 0.35);
-            margin-bottom: 10px;
-        }
-
-        .tagline {
-            font-size: 15px;
-            color: #8b5a6a;
-            margin-bottom: 28px;
+            text-shadow: 0 2px 0 #d98aa8, 0 4px 12px rgba(160, 80, 110, 0.35);
+            margin-top: 10px;
         }
 
         .hint {
-            font-size: 14px;
+            font-size: 13px;
             color: #8b5a6a;
-            margin-top: 18px;
+            margin-top: 14px;
             animation: pulse 1.4s ease-in-out infinite;
         }
 
@@ -109,7 +120,7 @@
             background: linear-gradient(135deg, #f4a3c0 0%, #e88aaf 100%);
             color: #fff;
             border: none;
-            padding: 14px 38px;
+            padding: 13px 38px;
             border-radius: 50px;
             font-size: 17px;
             font-weight: 700;
@@ -120,33 +131,120 @@
 
         .btn:hover { transform: translateY(-2px); }
         .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c96f92; }
+        .btn:focus-visible, .girl:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
 
-        .card {
-            background: rgba(255, 255, 255, 0.94);
+        /* Character picker */
+        .picker {
+            background: rgba(255, 255, 255, 0.82);
             border-radius: 22px;
-            padding: 24px 28px;
+            padding: 14px 12px 12px;
+            margin: 22px 0 18px;
             width: 100%;
-            max-width: 280px;
-            box-shadow: 0 8px 28px rgba(140, 70, 100, 0.25);
-            margin-bottom: 22px;
+            max-width: 310px;
+            box-shadow: 0 6px 20px rgba(140, 70, 100, 0.18);
         }
 
-        .card h2 {
-            font-size: 26px;
-            color: #d47a9c;
-            margin-bottom: 4px;
+        .picker-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #b89a9a;
+            margin-bottom: 8px;
         }
+
+        .girls {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+        }
+
+        .girl {
+            background: #fff5f8;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 4px 0 6px;
+            cursor: pointer;
+            font: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            color: #8b6a7a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        .girl canvas { width: 54px; height: 54px; }
+        .girl:hover { transform: translateY(-2px); }
+        .girl.selected { border-color: #e88aaf; background: #ffe6f0; color: #c2185b; }
+
+        .girl-quote {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            font-size: 13px;
+            color: #7a5a6a;
+            margin-top: 10px;
+            min-height: 34px;
+            line-height: 1.3;
+        }
+
+        /* Game over card */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 22px;
+            padding: 18px 22px 18px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 8px 28px rgba(140, 70, 100, 0.25);
+            margin: 14px 0 18px;
+        }
+
+        #gameover .satc { font-size: 60px; }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+
+        .card-head canvas { width: 56px; height: 56px; flex-shrink: 0; }
 
         .rank {
-            font-size: 15px;
-            font-style: italic;
-            color: #8b7a7a;
-            margin-bottom: 18px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #b89a9a;
         }
 
-        .badge {
-            font-size: 44px;
+        .rank-name {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: #d47a9c;
+            line-height: 1.15;
+        }
+
+        .wonder {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #5a4a4a;
+            text-align: left;
+            background: #fff5f8;
+            border-radius: 12px;
+            padding: 10px 12px;
             margin-bottom: 8px;
+        }
+
+        .quote {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #8b7a7a;
+            text-align: left;
+            margin-bottom: 14px;
         }
 
         .stats {
@@ -155,22 +253,23 @@
         }
 
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: #b89a9a;
         }
 
         .stat-value {
-            font-size: 30px;
+            font-size: 28px;
             font-weight: 800;
             color: #5a4a4a;
+            font-variant-numeric: tabular-nums;
         }
 
         .new-best {
             display: none;
-            margin-top: 12px;
-            font-size: 13px;
+            margin-top: 8px;
+            font-size: 12px;
             font-weight: 700;
             color: #fff;
             background: #e88aaf;
@@ -198,9 +297,20 @@
         #pauseBtn { left: 12px; display: none; }
 
         .small-link {
-            margin-top: 16px;
+            margin-top: 14px;
             font-size: 13px;
             color: #b0708a;
+        }
+
+        .menu-link {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #b0708a;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+            font-family: inherit;
         }
     </style>
 </head>
@@ -213,25 +323,39 @@
 
         <!-- Menu -->
         <div class="overlay active" id="menu">
-            <div class="title">Heels Over<br>Manhattan</div>
-            <p class="tagline">Fly through the skyline. Grab the cosmos. 🍸</p>
+            <div class="satc">SATC</div>
+            <div class="satc-sub">Heels Over Manhattan</div>
+            <div class="picker">
+                <div class="picker-label">Who are you today?</div>
+                <div class="girls" id="girls"></div>
+                <div class="girl-quote" id="girlQuote"></div>
+            </div>
             <button class="btn" id="playBtn">Play</button>
             <p class="hint">Tap, click or press Space to flap</p>
-            <a class="small-link" href="quiz.html">Which girl are you today? Take the quiz →</a>
+            <a class="small-link" href="quiz.html">Not sure? Take the quiz →</a>
         </div>
 
         <!-- Paused -->
         <div class="overlay" id="paused">
+            <div class="satc">SATC</div>
             <div class="title">Paused</div>
+            <p class="hint" style="margin-bottom: 18px;">Even Carrie needs a minute at her laptop.</p>
             <button class="btn" id="resumeBtn">Resume</button>
         </div>
 
         <!-- Game over -->
         <div class="overlay" id="gameover">
+            <div class="satc">SATC</div>
             <div class="card">
-                <div class="badge" id="badge">👠</div>
-                <h2>Game Over</h2>
-                <p class="rank" id="rank"></p>
+                <div class="card-head">
+                    <canvas id="deadPortrait" width="112" height="112"></canvas>
+                    <div>
+                        <div class="rank">Game over</div>
+                        <div class="rank-name" id="rank"></div>
+                    </div>
+                </div>
+                <p class="wonder" id="wonder"></p>
+                <p class="quote" id="quote"></p>
                 <div class="stats">
                     <div>
                         <div class="stat-label">Score</div>
@@ -245,6 +369,7 @@
                 <span class="new-best" id="newBest">New best!</span>
             </div>
             <button class="btn" id="retryBtn">Play Again</button>
+            <button class="menu-link" id="menuBtn">Change girl</button>
         </div>
     </div>
 
@@ -254,6 +379,7 @@
         const H = 640;
         const GROUND_H = 64;
         const PLAY_H = H - GROUND_H;
+        const ROAD_Y = PLAY_H + 28;
 
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
@@ -284,21 +410,88 @@
         const MAX_SPEED = 235;
         const START_GAP = 172;
         const MIN_GAP = 128;
-        const COSMO_CHANCE = 0.35;
-        const COSMO_POINTS = 2;
+        const ITEM_CHANCE = 0.45;
 
         const PALETTE = ['#f7c6d9', '#e9c4f0', '#c9d8f5', '#fbd5c0', '#f5b8cc', '#d8c8f2'];
 
+        // Collectibles: weight decides how often each appears.
+        const ITEMS = {
+            cupcake: { points: 1, weight: 0.45, label: 'Cupcake! +1' },
+            cosmo: { points: 2, weight: 0.4, label: 'Cosmo! +2' },
+            heel: { points: 3, weight: 0.15, label: 'Manolos! +3' }
+        };
+
+        // ---------- The girls ----------
+        const GIRLS = {
+            carrie: {
+                name: 'Carrie',
+                hair: '#d9a25e', style: 'curly', dress: '#ff7fae',
+                pick: '"I couldn\'t help but wonder…"',
+                quotes: [
+                    '"I like my money right where I can see it: hanging in my closet." — Carrie',
+                    '"Maybe our mistakes are what make our fate." — Carrie',
+                    '"I\'m looking for love. Real, ridiculous, inconvenient, consuming, can\'t-live-without-each-other love." — Carrie'
+                ]
+            },
+            samantha: {
+                name: 'Samantha',
+                hair: '#f7e7a8', style: 'bob', dress: '#e8364f',
+                pick: '"I love you, but I love me more."',
+                quotes: [
+                    '"I love you, but I love me more." — Samantha',
+                    '"I\'m a try-sexual. I\'ll try anything once." — Samantha',
+                    '"Don\'t worry, honey. Everything\'s going to be fabulous." — Samantha'
+                ]
+            },
+            miranda: {
+                name: 'Miranda',
+                hair: '#e0602e', style: 'short', dress: '#5b7fc4',
+                pick: '"He\'s just not that into you."',
+                quotes: [
+                    '"Men in their forties are like the Sunday crossword: tricky, complicated, and you\'re never sure you got the right answer." — Miranda',
+                    '"He\'s just not that into you." — Berger, to Miranda',
+                    '"I don\'t want to be a cliché." — Miranda'
+                ]
+            },
+            charlotte: {
+                name: 'Charlotte',
+                hair: '#5e3b2a', style: 'long', dress: '#f4b6cc',
+                pick: '"Where is he?!"',
+                quotes: [
+                    '"I\'ve been dating since I was fifteen! I\'m exhausted! Where is he?" — Charlotte',
+                    '"Maybe we could be each other\'s soulmates." — Charlotte',
+                    '"I choose my choice! I choose my choice!" — Charlotte'
+                ]
+            }
+        };
+
+        // Carrie's column, one question per crash.
+        const WONDER = {
+            building: [
+                'Why do I always run into the tall, unavailable ones?',
+                'Was it the building, or was it me?',
+                'Are skyscrapers just men who never call back?',
+                'In a city of eight million, why does it always come down to one big one?'
+            ],
+            ground: [
+                'Did I just fall for the sidewalk?',
+                'Is gravity the ultimate commitment-phobe?',
+                'When did the street become my rebound?',
+                'Can you ever really get back up after falling that hard?'
+            ]
+        };
+
         // ---------- Storage (best-effort) ----------
-        function loadNum(key) {
-            try { return parseInt(localStorage.getItem(key), 10) || 0; } catch (e) { return 0; }
+        function loadStr(key) {
+            try { return localStorage.getItem(key); } catch (e) { return null; }
         }
         function save(key, val) {
             try { localStorage.setItem(key, String(val)); } catch (e) { /* ignore */ }
         }
 
-        let best = loadNum('hom_best');
-        let muted = (() => { try { return localStorage.getItem('hom_muted') === '1'; } catch (e) { return false; } })();
+        let best = parseInt(loadStr('hom_best'), 10) || 0;
+        let muted = loadStr('hom_muted') === '1';
+        let girlKey = GIRLS[loadStr('hom_girl')] ? loadStr('hom_girl') : 'carrie';
 
         // ---------- Audio ----------
         let audio = null;
@@ -329,14 +522,15 @@
         const sfx = {
             flap: () => tone(520, 0.09, 'triangle', 0.12, 820),
             score: () => { tone(880, 0.08, 'sine', 0.12); tone(1320, 0.12, 'sine', 0.12, null, 0.07); },
-            cosmo: () => [660, 880, 1100, 1320].forEach((f, i) => tone(f, 0.1, 'triangle', 0.1, null, i * 0.05)),
-            hit: () => { tone(220, 0.25, 'square', 0.12, 60); tone(110, 0.35, 'sawtooth', 0.08, 40, 0.05); }
+            item: () => [660, 880, 1100, 1320].forEach((f, i) => tone(f, 0.1, 'triangle', 0.1, null, i * 0.05)),
+            milestone: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.14, 'triangle', 0.1, null, i * 0.07)),
+            hit: () => { tone(220, 0.25, 'square', 0.12, 60); tone(110, 0.35, 'sawtooth', 0.08, 40, 0.05); },
+            honk: () => { tone(392, 0.12, 'square', 0.04); tone(392, 0.14, 'square', 0.04, null, 0.16); }
         };
 
         const muteBtn = document.getElementById('muteBtn');
         function renderMute() { muteBtn.textContent = muted ? '🔇' : '🔊'; }
         renderMute();
-        muteBtn.addEventListener('pointerdown', e => e.stopPropagation());
         muteBtn.addEventListener('click', e => {
             e.stopPropagation();
             muted = !muted;
@@ -347,11 +541,13 @@
 
         // ---------- Game state ----------
         let state = 'menu';       // menu | play | paused | dead
-        let player, pipes, particles, popups, score, speed, distSincePipe;
+        let player, pipes, particles, popups, score, speed, distSincePipe, banner;
+        let vehicles = [], nextVehicle = 1.5;
         let groundX = 0, cloudsX = 0, skylineX = 0;
         let shake = 0, flash = 0, deadAt = 0, time = 0;
 
         const rand = (a, b) => a + Math.random() * (b - a);
+        const pick = arr => arr[Math.floor(Math.random() * arr.length)];
         const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
         // Background skyline is generated once and tiled.
@@ -378,6 +574,7 @@
             score = 0;
             speed = START_SPEED;
             distSincePipe = PIPE_SPACING - 40;
+            banner = null;
         }
         reset();
 
@@ -387,6 +584,16 @@
                 speed: START_SPEED + (MAX_SPEED - START_SPEED) * t,
                 gap: START_GAP - (START_GAP - MIN_GAP) * t
             };
+        }
+
+        function rollItem() {
+            if (Math.random() > ITEM_CHANCE) return null;
+            let r = Math.random();
+            for (const [type, it] of Object.entries(ITEMS)) {
+                r -= it.weight;
+                if (r <= 0) return { type, taken: false, bob: rand(0, Math.PI * 2) };
+            }
+            return { type: 'cupcake', taken: false, bob: 0 };
         }
 
         function spawnPipe() {
@@ -401,11 +608,17 @@
                 x: W + 10,
                 gapY,
                 gap,
-                color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
-                topWater: Math.random() < 0.5,
+                color: pick(PALETTE),
+                roof: pick(['water', 'water', 'none', 'sign']),
                 scored: false,
-                cosmo: Math.random() < COSMO_CHANCE ? { taken: false, bob: rand(0, Math.PI * 2) } : null
+                item: rollItem()
             });
+        }
+
+        function spawnVehicle() {
+            const bus = Math.random() < 0.35;
+            vehicles.push({ type: bus ? 'bus' : 'taxi', x: W + 20, w: bus ? 150 : 54 });
+            if (state === 'play' && Math.random() < 0.3) sfx.honk();
         }
 
         // ---------- Input ----------
@@ -422,7 +635,7 @@
             sfx.flap();
             for (let i = 0; i < 4; i++) {
                 particles.push({
-                    x: player.x - 10, y: player.y + 6,
+                    x: player.x - 12, y: player.y + 6,
                     vx: rand(-90, -30), vy: rand(-20, 60),
                     life: 0.4, max: 0.4, size: rand(2, 4), color: '#ffffff'
                 });
@@ -430,7 +643,7 @@
         }
 
         stage.addEventListener('pointerdown', e => {
-            if (e.target.closest('button, a')) return;
+            if (e.target.closest('button, a, .picker, .card')) return;
             e.preventDefault();
             flap();
         });
@@ -444,6 +657,10 @@
                 if (state === 'play') pause(); else if (state === 'paused') resume();
             } else if (e.code === 'KeyM') {
                 muteBtn.click();
+            } else if (state === 'menu' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) {
+                const keys = Object.keys(GIRLS);
+                const i = keys.indexOf(girlKey) + (e.code === 'ArrowLeft' ? -1 : 1);
+                selectGirl(keys[(i + keys.length) % keys.length]);
             }
         });
 
@@ -467,25 +684,36 @@
             sfx.flap();
         }
 
+        function toMenu() {
+            reset();
+            state = 'menu';
+            showOverlay('menu');
+        }
+
         function pause() { state = 'paused'; showOverlay('paused'); }
         function resume() { state = 'play'; showOverlay(null); lastT = performance.now(); }
 
         document.getElementById('playBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
         document.getElementById('retryBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
+        document.getElementById('menuBtn').addEventListener('click', toMenu);
         document.getElementById('resumeBtn').addEventListener('click', resume);
         pauseBtn.addEventListener('click', pause);
         document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') pause(); });
 
         // ---------- Game over ----------
         const RANKS = [
-            { min: 40, badge: '👑', text: 'Absolutely fabulous.' },
-            { min: 25, badge: '🍸', text: 'Cosmo Queen' },
-            { min: 15, badge: '👜', text: 'Fifth Avenue Regular' },
-            { min: 5, badge: '👠', text: 'Brunch Material' },
-            { min: 0, badge: '☕', text: 'Just browsing, darling.' }
+            { min: 50, text: '"Absolutely." Mr. Big would approve' },
+            { min: 35, text: 'Toast of Manhattan' },
+            { min: 25, text: 'Cosmo Queen' },
+            { min: 15, text: 'Fifth Avenue Regular' },
+            { min: 8, text: 'Magnolia Cupcake Run' },
+            { min: 3, text: 'Brunch Material' },
+            { min: 0, text: 'Just browsing, darling.' }
         ];
 
-        function die() {
+        const MILESTONES = { 10: 'Fabulous!', 25: 'Toast of the town!', 40: 'Absolutely!', 60: 'Legendary, darling!' };
+
+        function die(cause) {
             if (state !== 'play') return;
             state = 'dead';
             deadAt = performance.now();
@@ -502,22 +730,34 @@
             }
             const isBest = score > best;
             if (isBest) { best = score; save('hom_best', best); }
-            const rank = RANKS.find(r => score >= r.min);
-            document.getElementById('badge').textContent = rank.badge;
-            document.getElementById('rank').textContent = rank.text;
+            document.getElementById('rank').textContent = RANKS.find(r => score >= r.min).text;
+            document.getElementById('wonder').textContent = 'I couldn\'t help but wonder… ' + pick(WONDER[cause]);
+            document.getElementById('quote').textContent = pick(GIRLS[girlKey].quotes);
             document.getElementById('finalScore').textContent = score;
             document.getElementById('bestScore').textContent = best;
             document.getElementById('newBest').classList.toggle('show', isBest && score > 0);
+            portrait(document.getElementById('deadPortrait'), girlKey);
             setTimeout(() => { if (state === 'dead') showOverlay('gameover'); }, 550);
             pauseBtn.style.display = 'none';
         }
 
-        // ---------- Collision ----------
+        // ---------- Collision & scoring ----------
         function circleRect(cx, cy, r, rx, ry, rw, rh) {
             const nx = clamp(cx, rx, rx + rw);
             const ny = clamp(cy, ry, ry + rh);
             const dx = cx - nx, dy = cy - ny;
             return dx * dx + dy * dy < r * r;
+        }
+
+        function addScore(n) {
+            const before = score;
+            score += n;
+            for (const m of Object.keys(MILESTONES)) {
+                if (before < m && score >= m) {
+                    banner = { text: MILESTONES[m], life: 1.6 };
+                    sfx.milestone();
+                }
+            }
         }
 
         // ---------- Update ----------
@@ -532,22 +772,24 @@
                 groundX = (groundX + scrollSpeed * dt) % 24;
                 skylineX = (skylineX + scrollSpeed * 0.25 * dt) % SKYLINE_W;
                 cloudsX += scrollSpeed * 0.08 * dt;
-            }
 
-            if (state === 'menu') {
-                player.y = PLAY_H * 0.45 + Math.sin(time * 3) * 10;
-                player.rot = Math.sin(time * 3) * 0.08;
-                player.wing = (Math.sin(time * 12) + 1) / 2;
+                // Yellow cabs and the famous bus roll by on the street.
+                nextVehicle -= dt;
+                if (nextVehicle <= 0) {
+                    spawnVehicle();
+                    nextVehicle = rand(3, 7);
+                }
+                for (const v of vehicles) v.x -= (scrollSpeed + 90) * dt;
+                vehicles = vehicles.filter(v => v.x + v.w > -10);
             }
 
             if (state === 'play') {
-                const diff = difficulty();
-                speed = diff.speed;
+                speed = difficulty().speed;
 
                 player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL);
                 player.y += player.vy * dt;
                 player.wing = Math.max(0, player.wing - dt * 5);
-                const targetRot = clamp(player.vy / 650, -0.45, 1.3);
+                const targetRot = clamp(player.vy / 900, -0.35, 0.9);
                 player.rot += (targetRot - player.rot) * Math.min(1, dt * 10);
 
                 if (player.y - player.r < 0) { player.y = player.r; player.vy = 0; }
@@ -563,7 +805,7 @@
 
                     if (!p.scored && p.x + PIPE_W < player.x) {
                         p.scored = true;
-                        score++;
+                        addScore(1);
                         sfx.score();
                     }
 
@@ -572,17 +814,18 @@
                     const botY = p.gapY + p.gap / 2;
                     if (circleRect(player.x, player.y, hitR, p.x, -50, PIPE_W, topH + 50) ||
                         circleRect(player.x, player.y, hitR, p.x, botY, PIPE_W, PLAY_H - botY)) {
-                        die();
+                        die('building');
                     }
 
-                    if (p.cosmo && !p.cosmo.taken) {
+                    if (p.item && !p.item.taken) {
                         const cx = p.x + PIPE_W / 2;
-                        const cy = p.gapY + Math.sin(time * 3 + p.cosmo.bob) * 8;
+                        const cy = p.gapY + Math.sin(time * 3 + p.item.bob) * 8;
                         if (Math.hypot(player.x - cx, player.y - cy) < player.r + 14) {
-                            p.cosmo.taken = true;
-                            score += COSMO_POINTS;
-                            sfx.cosmo();
-                            popups.push({ x: cx, y: cy - 10, text: '+' + COSMO_POINTS, life: 0.9 });
+                            const it = ITEMS[p.item.type];
+                            p.item.taken = true;
+                            addScore(it.points);
+                            sfx.item();
+                            popups.push({ x: cx, y: cy - 14, text: it.label, life: 0.9 });
                             for (let i = 0; i < 12; i++) {
                                 const a = (i / 12) * Math.PI * 2;
                                 particles.push({
@@ -597,7 +840,7 @@
 
                 if (player.y + player.r >= PLAY_H) {
                     player.y = PLAY_H - player.r;
-                    die();
+                    die('ground');
                 }
             }
 
@@ -620,19 +863,295 @@
 
             for (const pp of popups) { pp.life -= dt; pp.y -= 40 * dt; }
             popups = popups.filter(pp => pp.life > 0);
+
+            if (banner) {
+                banner.life -= dt;
+                if (banner.life <= 0) banner = null;
+            }
         }
 
-        // ---------- Drawing ----------
-        function roundRect(x, y, w, h, r) {
-            ctx.beginPath();
-            ctx.moveTo(x + r, y);
-            ctx.arcTo(x + w, y, x + w, y + h, r);
-            ctx.arcTo(x + w, y + h, x, y + h, r);
-            ctx.arcTo(x, y + h, x, y, r);
-            ctx.arcTo(x, y, x + w, y, r);
-            ctx.closePath();
+        // ---------- Drawing helpers ----------
+        function roundRect(c, x, y, w, h, r) {
+            c.beginPath();
+            c.moveTo(x + r, y);
+            c.arcTo(x + w, y, x + w, y + h, r);
+            c.arcTo(x + w, y + h, x, y + h, r);
+            c.arcTo(x, y + h, x, y, r);
+            c.arcTo(x, y, x + w, y, r);
+            c.closePath();
         }
 
+        function circle(c, x, y, r) {
+            c.beginPath();
+            c.arc(x, y, r, 0, Math.PI * 2);
+            c.fill();
+        }
+
+        // ---------- The girls (drawn centred on the origin, facing right) ----------
+        function drawWing(c, wing) {
+            c.save();
+            c.translate(-11, -2);
+            c.rotate(-0.6 - wing * 0.7);
+            c.scale(1, 0.35 + wing * 0.9);
+            c.fillStyle = '#ffffff';
+            c.strokeStyle = '#e7b6c9';
+            c.lineWidth = 1.5;
+            c.beginPath();
+            c.ellipse(-5, -9, 6, 12, -0.3, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+            c.beginPath();
+            c.ellipse(3, -10, 5, 10, 0.2, 0, Math.PI * 2);
+            c.fill();
+            c.stroke();
+            c.restore();
+        }
+
+        function drawGirl(c, key, wing, withWings = true) {
+            const g = GIRLS[key];
+
+            if (withWings) drawWing(c, wing);
+
+            // Shoulders in her signature colour
+            c.fillStyle = g.dress;
+            c.beginPath();
+            c.ellipse(0, 15, 10, 6, 0, Math.PI, 0);
+            c.fill();
+
+            // Hair behind the face
+            c.fillStyle = g.hair;
+            if (g.style === 'curly') {
+                for (const [x, y, r] of [[-12, -6, 7], [-13, 3, 7], [-11, 11, 6], [-6, -12, 7], [2, -13, 7],
+                                         [9, -10, 6], [12, -3, 6], [11, 6, 5], [-4, 13, 5]]) circle(c, x, y, r);
+            } else if (g.style === 'bob') {
+                roundRect(c, -14, -15, 28, 26, 11);
+                c.fill();
+            } else if (g.style === 'short') {
+                roundRect(c, -13, -14, 26, 22, 11);
+                c.fill();
+            } else {
+                roundRect(c, -14, -14, 28, 32, 12);
+                c.fill();
+            }
+
+            // Face
+            c.fillStyle = '#ffe1cf';
+            c.beginPath();
+            c.ellipse(1, 1, 10, 11, 0, 0, Math.PI * 2);
+            c.fill();
+
+            // Fringe
+            c.fillStyle = g.hair;
+            if (g.style === 'curly') {
+                for (const [x, y, r] of [[-6, -8, 5], [0, -10, 5], [6, -8, 4]]) circle(c, x, y, r);
+            } else if (g.style === 'bob') {
+                c.beginPath();
+                c.moveTo(-10, -2);
+                c.quadraticCurveTo(-8, -14, 4, -12);
+                c.quadraticCurveTo(12, -10, 12, -2);
+                c.quadraticCurveTo(4, -9, -10, -2);
+                c.fill();
+            } else if (g.style === 'short') {
+                c.beginPath();
+                c.moveTo(-10, -1);
+                c.quadraticCurveTo(-6, -15, 6, -12);
+                c.quadraticCurveTo(12, -9, 11, -3);
+                c.lineTo(-1, -6);
+                c.closePath();
+                c.fill();
+            } else {
+                c.beginPath();
+                c.moveTo(-10, 2);
+                c.quadraticCurveTo(-8, -12, 1, -11);
+                c.quadraticCurveTo(10, -11, 11, 2);
+                c.quadraticCurveTo(7, -6, 1, -6);
+                c.quadraticCurveTo(-5, -6, -10, 2);
+                c.fill();
+            }
+
+            // Eyes, lashes, blush, lips
+            c.fillStyle = '#4a3036';
+            circle(c, 0, 1, 1.8);
+            circle(c, 7, 1, 1.8);
+            c.fillStyle = '#ffffff';
+            circle(c, 0.6, 0.4, 0.6);
+            circle(c, 7.6, 0.4, 0.6);
+            c.strokeStyle = '#4a3036';
+            c.lineWidth = 0.8;
+            c.beginPath();
+            c.moveTo(-1.5, -0.8); c.lineTo(-2.6, -1.8);
+            c.moveTo(8.5, -0.8); c.lineTo(9.6, -1.8);
+            c.stroke();
+            c.fillStyle = 'rgba(255, 120, 150, 0.35)';
+            circle(c, -2, 5, 2.2);
+            circle(c, 9, 5, 2.2);
+            c.fillStyle = key === 'samantha' ? '#d0213b' : '#e0607e';
+            c.beginPath();
+            c.ellipse(4, 7, key === 'samantha' ? 2.6 : 2, 1.3, 0, 0, Math.PI * 2);
+            c.fill();
+
+            // Signature accessories
+            if (key === 'carrie') {
+                // The giant flower corsage
+                c.fillStyle = '#ffffff';
+                for (let i = 0; i < 5; i++) {
+                    const a = i / 5 * Math.PI * 2;
+                    circle(c, -9 + Math.cos(a) * 3, -9 + Math.sin(a) * 3, 2.6);
+                }
+                c.fillStyle = '#ffd95a';
+                circle(c, -9, -9, 1.6);
+            } else if (key === 'charlotte') {
+                // Headband with pearls
+                c.strokeStyle = '#ff9fc0';
+                c.lineWidth = 2.4;
+                c.beginPath();
+                c.arc(1, 0, 12, Math.PI * 1.1, Math.PI * 1.9);
+                c.stroke();
+                c.fillStyle = '#ffffff';
+                for (let i = 0; i < 5; i++) {
+                    const a = Math.PI * (1.2 + i * 0.15);
+                    circle(c, 1 + Math.cos(a) * 12, Math.sin(a) * 12, 1.1);
+                }
+            } else if (key === 'samantha') {
+                // Gold statement earring
+                c.fillStyle = '#ffcf40';
+                circle(c, 11, 7, 1.8);
+            } else if (key === 'miranda') {
+                // Pen tucked behind the ear: always working
+                c.save();
+                c.translate(-8, 0);
+                c.rotate(-0.9);
+                c.fillStyle = '#2d3e66';
+                c.fillRect(-1, -7, 2, 12);
+                c.restore();
+            }
+        }
+
+        // ---------- Character picker ----------
+        const girlButtons = {};
+
+        function portrait(cnv, key) {
+            const c = cnv.getContext('2d');
+            c.setTransform(1, 0, 0, 1, 0, 0);
+            c.clearRect(0, 0, cnv.width, cnv.height);
+            const s = cnv.width / 40;
+            c.setTransform(s, 0, 0, s, cnv.width / 2, cnv.height / 2 - 1 * s);
+            drawGirl(c, key, 0, false);
+        }
+
+        function selectGirl(key) {
+            girlKey = key;
+            save('hom_girl', key);
+            for (const [k, b] of Object.entries(girlButtons)) {
+                b.classList.toggle('selected', k === key);
+                b.setAttribute('aria-pressed', String(k === key));
+            }
+            document.getElementById('girlQuote').textContent = GIRLS[key].pick;
+        }
+
+        for (const [key, g] of Object.entries(GIRLS)) {
+            const b = document.createElement('button');
+            b.className = 'girl';
+            b.type = 'button';
+            const cnv = document.createElement('canvas');
+            cnv.width = 108;
+            cnv.height = 108;
+            portrait(cnv, key);
+            b.appendChild(cnv);
+            b.appendChild(document.createTextNode(g.name));
+            b.addEventListener('click', () => { ensureAudio(); selectGirl(key); sfx.flap(); });
+            document.getElementById('girls').appendChild(b);
+            girlButtons[key] = b;
+        }
+        selectGirl(girlKey);
+
+        // ---------- Collectibles ----------
+        function drawCosmo(c) {
+            c.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            c.beginPath();
+            c.moveTo(-13, -10); c.lineTo(13, -10); c.lineTo(0, 4); c.closePath();
+            c.fill();
+            c.fillStyle = '#ff6f9f';
+            c.beginPath();
+            c.moveTo(-10, -7); c.lineTo(10, -7); c.lineTo(0, 3); c.closePath();
+            c.fill();
+            c.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            c.lineWidth = 2;
+            c.beginPath();
+            c.moveTo(0, 4); c.lineTo(0, 13);
+            c.moveTo(-6, 13); c.lineTo(6, 13);
+            c.stroke();
+            c.fillStyle = '#9ad66b';
+            c.beginPath();
+            c.arc(10, -10, 4, Math.PI, 0);
+            c.fill();
+        }
+
+        function drawCupcake(c) {
+            // Wrapper
+            c.fillStyle = '#ffffff';
+            c.beginPath();
+            c.moveTo(-9, 0); c.lineTo(9, 0); c.lineTo(6, 12); c.lineTo(-6, 12); c.closePath();
+            c.fill();
+            c.strokeStyle = '#f4a3c0';
+            c.lineWidth = 1.2;
+            c.beginPath();
+            for (let x = -6; x <= 6; x += 3) { c.moveTo(x * 1.3, 0); c.lineTo(x, 12); }
+            c.stroke();
+            // Pastel frosting swirl
+            c.fillStyle = '#b8e6d2';
+            for (const [y, rx, ry] of [[-1, 11, 5], [-6, 8, 4], [-10, 4.5, 3]]) {
+                c.beginPath();
+                c.ellipse(0, y, rx, ry, 0, 0, Math.PI * 2);
+                c.fill();
+            }
+            // Sprinkles
+            c.fillStyle = '#ff7fae';
+            c.fillRect(-6, -3, 2, 1.2);
+            c.fillRect(3, -6, 2, 1.2);
+            c.fillStyle = '#ffd95a';
+            c.fillRect(-1, -8, 2, 1.2);
+            c.fillRect(5, -1, 2, 1.2);
+        }
+
+        function drawHeel(c) {
+            c.fillStyle = '#5a2a6e';
+            c.beginPath();
+            c.moveTo(-15, 6); c.lineTo(-11, 6); c.lineTo(-12, 19); c.lineTo(-14, 19); c.closePath();
+            c.fill();
+            c.fillStyle = '#7d3c98';
+            c.beginPath();
+            c.moveTo(-16, 7);
+            c.quadraticCurveTo(-18, -6, -10, -7);
+            c.quadraticCurveTo(-6, -2, 0, 0);
+            c.quadraticCurveTo(10, 2, 16, 6);
+            c.quadraticCurveTo(19, 9, 16, 11);
+            c.lineTo(4, 11);
+            c.quadraticCurveTo(-6, 11, -16, 7);
+            c.closePath();
+            c.fill();
+            // Jewelled buckle
+            c.fillStyle = '#e8f4ff';
+            roundRect(c, 4, 0, 6, 5, 1.5);
+            c.fill();
+            c.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            c.beginPath();
+            c.ellipse(-8, 3, 3, 1.2, 0.3, 0, Math.PI * 2);
+            c.fill();
+        }
+
+        function drawItem(item, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.fillStyle = 'rgba(255, 230, 128, 0.35)';
+            circle(ctx, 0, 0, 18 + Math.sin(time * 6) * 2);
+            if (item.type === 'cosmo') drawCosmo(ctx);
+            else if (item.type === 'cupcake') drawCupcake(ctx);
+            else drawHeel(ctx);
+            ctx.restore();
+        }
+
+        // ---------- Scene ----------
         const skyGrad = ctx.createLinearGradient(0, 0, 0, PLAY_H);
         skyGrad.addColorStop(0, '#ffd6e8');
         skyGrad.addColorStop(0.55, '#ffe9de');
@@ -642,13 +1161,9 @@
             ctx.fillStyle = skyGrad;
             ctx.fillRect(0, 0, W, PLAY_H);
 
-            // Sun
             ctx.fillStyle = 'rgba(255, 240, 200, 0.9)';
-            ctx.beginPath();
-            ctx.arc(270, 150, 46, 0, Math.PI * 2);
-            ctx.fill();
+            circle(ctx, 270, 150, 46);
 
-            // Clouds
             ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
             for (const c of clouds) {
                 const span = W + 160;
@@ -701,10 +1216,10 @@
             ctx.fillRect(x, -10, PIPE_W, topH + 10);
             drawWindows(x, -10, PIPE_W, topH + 10, true);
             ctx.fillStyle = 'rgba(120, 70, 100, 0.25)';
-            roundRect(x - 5, topH - 14, PIPE_W + 10, 14, 4);
+            roundRect(ctx, x - 5, topH - 14, PIPE_W + 10, 14, 4);
             ctx.fill();
             ctx.fillStyle = p.color;
-            roundRect(x - 4, topH - 15, PIPE_W + 8, 12, 4);
+            roundRect(ctx, x - 4, topH - 15, PIPE_W + 8, 12, 4);
             ctx.fill();
 
             // Bottom building
@@ -712,14 +1227,13 @@
             ctx.fillRect(x, botY, PIPE_W, PLAY_H - botY);
             drawWindows(x, botY + 12, PIPE_W, PLAY_H - botY - 12, false);
             ctx.fillStyle = 'rgba(120, 70, 100, 0.25)';
-            roundRect(x - 5, botY, PIPE_W + 10, 14, 4);
+            roundRect(ctx, x - 5, botY, PIPE_W + 10, 14, 4);
             ctx.fill();
             ctx.fillStyle = p.color;
-            roundRect(x - 4, botY - 1, PIPE_W + 8, 12, 4);
+            roundRect(ctx, x - 4, botY - 1, PIPE_W + 8, 12, 4);
             ctx.fill();
 
-            // Water tower on some rooftops
-            if (p.topWater && PLAY_H - botY > 40) {
+            if (p.roof === 'water' && PLAY_H - botY > 40) {
                 const tx = x + PIPE_W - 24, ty = botY - 24;
                 ctx.strokeStyle = '#a77b8f';
                 ctx.lineWidth = 2;
@@ -728,144 +1242,97 @@
                 ctx.moveTo(tx + 13, ty + 14); ctx.lineTo(tx + 15, botY);
                 ctx.stroke();
                 ctx.fillStyle = '#c99a8a';
-                roundRect(tx, ty, 16, 15, 3);
+                roundRect(ctx, tx, ty, 16, 15, 3);
                 ctx.fill();
                 ctx.beginPath();
                 ctx.moveTo(tx - 1, ty + 1); ctx.lineTo(tx + 8, ty - 7); ctx.lineTo(tx + 17, ty + 1);
                 ctx.fill();
+            } else if (p.roof === 'sign' && PLAY_H - botY > 40) {
+                // Rooftop billboard for the show
+                const sw = PIPE_W - 8, sx = x + 4, sy = botY - 30;
+                ctx.fillStyle = '#a77b8f';
+                ctx.fillRect(sx + 10, sy + 20, 2, 10);
+                ctx.fillRect(sx + sw - 12, sy + 20, 2, 10);
+                ctx.fillStyle = '#fff';
+                roundRect(ctx, sx, sy, sw, 22, 3);
+                ctx.fill();
+                ctx.fillStyle = '#c2185b';
+                ctx.font = "italic 900 9px 'Playfair Display', Georgia, serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Sex and', sx + sw / 2, sy + 7);
+                ctx.fillText('the City', sx + sw / 2, sy + 16);
             }
 
-            // Subtle side shading
             ctx.fillStyle = 'rgba(120, 70, 100, 0.12)';
             ctx.fillRect(x + PIPE_W - 10, -10, 10, topH - 5);
             ctx.fillRect(x + PIPE_W - 10, botY + 11, 10, PLAY_H - botY);
         }
 
-        function drawCosmo(cx, cy) {
-            ctx.save();
-            ctx.translate(cx, cy);
-            // Glow
-            ctx.fillStyle = 'rgba(255, 230, 128, 0.35)';
-            ctx.beginPath();
-            ctx.arc(0, 0, 18 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
-            ctx.fill();
-            // Glass bowl
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.beginPath();
-            ctx.moveTo(-13, -10); ctx.lineTo(13, -10); ctx.lineTo(0, 4); ctx.closePath();
-            ctx.fill();
-            // Cosmo
-            ctx.fillStyle = '#ff6f9f';
-            ctx.beginPath();
-            ctx.moveTo(-10, -7); ctx.lineTo(10, -7); ctx.lineTo(0, 3); ctx.closePath();
-            ctx.fill();
-            // Stem & base
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, 4); ctx.lineTo(0, 13);
-            ctx.moveTo(-6, 13); ctx.lineTo(6, 13);
-            ctx.stroke();
-            // Lime wedge
-            ctx.fillStyle = '#9ad66b';
-            ctx.beginPath();
-            ctx.arc(10, -10, 4, Math.PI, 0);
-            ctx.fill();
-            ctx.restore();
+        function drawVehicle(v) {
+            const y = ROAD_Y + 4;
+            if (v.type === 'taxi') {
+                ctx.fillStyle = '#ffd23f';
+                roundRect(ctx, v.x, y - 2, v.w, 16, 5);
+                ctx.fill();
+                roundRect(ctx, v.x + 12, y - 11, 28, 12, 4);
+                ctx.fill();
+                ctx.fillStyle = '#bfe3ff';
+                ctx.fillRect(v.x + 15, y - 8, 10, 7);
+                ctx.fillRect(v.x + 27, y - 8, 10, 7);
+                ctx.fillStyle = '#333';
+                ctx.fillRect(v.x + 2, y + 5, v.w - 4, 2);
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(v.x + 20, y - 15, 12, 4);
+                ctx.fillStyle = '#3a2a30';
+                circle(ctx, v.x + 12, y + 14, 4.5);
+                circle(ctx, v.x + v.w - 12, y + 14, 4.5);
+            } else {
+                // The opening-credits bus
+                ctx.fillStyle = '#f2f2f6';
+                roundRect(ctx, v.x, y - 20, v.w, 34, 6);
+                ctx.fill();
+                ctx.fillStyle = '#9fc8f0';
+                ctx.fillRect(v.x + 6, y - 16, 14, 10);
+                ctx.fillStyle = '#ff5c97';
+                roundRect(ctx, v.x + 26, y - 17, v.w - 32, 21, 3);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = "900 7px -apple-system, 'Segoe UI', Roboto, sans-serif";
+                ctx.fillText('CARRIE BRADSHAW', v.x + 26 + (v.w - 32) / 2, y - 11);
+                ctx.fillText('KNOWS GOOD SEX', v.x + 26 + (v.w - 32) / 2, y - 3);
+                ctx.fillStyle = '#3a2a30';
+                circle(ctx, v.x + 20, y + 14, 5);
+                circle(ctx, v.x + v.w - 22, y + 14, 5);
+            }
+        }
+
+        function drawGround() {
+            ctx.fillStyle = '#e8d3d8';
+            ctx.fillRect(0, PLAY_H, W, GROUND_H);
+            ctx.fillStyle = '#d4b5bf';
+            ctx.fillRect(0, PLAY_H, W, 6);
+            ctx.fillStyle = 'rgba(160, 110, 130, 0.35)';
+            for (let x = -groundX; x < W; x += 24) {
+                ctx.fillRect(x, PLAY_H + 6, 2, 22);
+            }
+            ctx.fillStyle = '#bfa6b0';
+            ctx.fillRect(0, ROAD_Y, W, GROUND_H - 28);
+            ctx.fillStyle = '#ffd95a';
+            for (let x = -groundX * 2 % 48; x < W; x += 48) {
+                ctx.fillRect(x, PLAY_H + 50, 24, 3);
+            }
         }
 
         function drawPlayer() {
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(player.rot);
-            ctx.scale(1.2, 1.2);
-
-            // Wing (behind)
-            const flapAmt = 0.35 + player.wing * 0.9;
-            ctx.save();
-            ctx.translate(-2, -6);
-            ctx.rotate(-0.5 - player.wing * 0.7);
-            ctx.scale(1, flapAmt);
-            ctx.fillStyle = '#ffffff';
-            ctx.strokeStyle = '#e7b6c9';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.ellipse(-6, -8, 7, 13, -0.3, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.ellipse(2, -9, 6, 11, 0.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.stroke();
+            ctx.scale(1.25, 1.25);
+            drawGirl(ctx, girlKey, player.wing);
             ctx.restore();
-
-            // Stiletto heel spike
-            ctx.fillStyle = '#c2185b';
-            ctx.beginPath();
-            ctx.moveTo(-15, 6);
-            ctx.lineTo(-11, 6);
-            ctx.lineTo(-12, 19);
-            ctx.lineTo(-14, 19);
-            ctx.closePath();
-            ctx.fill();
-
-            // Shoe body
-            ctx.fillStyle = '#ff5c97';
-            ctx.beginPath();
-            ctx.moveTo(-16, 7);
-            ctx.quadraticCurveTo(-18, -6, -10, -7);
-            ctx.quadraticCurveTo(-6, -2, 0, 0);
-            ctx.quadraticCurveTo(10, 2, 16, 6);
-            ctx.quadraticCurveTo(19, 9, 16, 11);
-            ctx.lineTo(4, 11);
-            ctx.quadraticCurveTo(-6, 11, -16, 7);
-            ctx.closePath();
-            ctx.fill();
-
-            // Red sole peek
-            ctx.strokeStyle = '#d81b45';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(-14, 8);
-            ctx.quadraticCurveTo(-4, 12, 15, 11);
-            ctx.stroke();
-
-            // Inner lining
-            ctx.fillStyle = '#ffd1e0';
-            ctx.beginPath();
-            ctx.moveTo(-12, -4);
-            ctx.quadraticCurveTo(-7, 0, 0, 1.5);
-            ctx.quadraticCurveTo(-8, 3, -13, 1);
-            ctx.closePath();
-            ctx.fill();
-
-            // Shine
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.beginPath();
-            ctx.ellipse(8, 4, 4, 1.5, 0.3, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
-        }
-
-        function drawGround() {
-            // Sidewalk
-            ctx.fillStyle = '#e8d3d8';
-            ctx.fillRect(0, PLAY_H, W, GROUND_H);
-            ctx.fillStyle = '#d4b5bf';
-            ctx.fillRect(0, PLAY_H, W, 6);
-            // Paving joints
-            ctx.fillStyle = 'rgba(160, 110, 130, 0.35)';
-            for (let x = -groundX; x < W; x += 24) {
-                ctx.fillRect(x, PLAY_H + 6, 2, 22);
-            }
-            // Road with taxi-yellow dashes
-            ctx.fillStyle = '#bfa6b0';
-            ctx.fillRect(0, PLAY_H + 28, W, GROUND_H - 28);
-            ctx.fillStyle = '#ffd95a';
-            for (let x = -groundX * 2 % 48; x < W; x += 48) {
-                ctx.fillRect(x, PLAY_H + 44, 24, 4);
-            }
         }
 
         function drawParticles() {
@@ -880,16 +1347,16 @@
                     ctx.fillRect(-1, -pt.size, 2, pt.size * 2);
                     ctx.restore();
                 } else {
-                    ctx.beginPath();
-                    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
-                    ctx.fill();
+                    circle(ctx, pt.x, pt.y, pt.size);
                 }
             }
             ctx.globalAlpha = 1;
         }
 
-        function outlinedText(text, x, y, size) {
-            ctx.font = `800 ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+        function outlinedText(text, x, y, size, serif = false) {
+            ctx.font = serif
+                ? `italic 900 ${size}px 'Playfair Display', Georgia, serif`
+                : `800 ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.lineJoin = 'round';
@@ -907,19 +1374,32 @@
             drawBackground();
             for (const p of pipes) drawBuilding(p);
             for (const p of pipes) {
-                if (p.cosmo && !p.cosmo.taken) {
-                    drawCosmo(p.x + PIPE_W / 2, p.gapY + Math.sin(time * 3 + p.cosmo.bob) * 8);
+                if (p.item && !p.item.taken) {
+                    drawItem(p.item, p.x + PIPE_W / 2, p.gapY + Math.sin(time * 3 + p.item.bob) * 8);
                 }
             }
             drawGround();
+            for (const v of vehicles) drawVehicle(v);
             drawParticles();
-            drawPlayer();
+            if (state !== 'menu') drawPlayer();
 
             for (const pp of popups) {
                 ctx.globalAlpha = Math.min(1, pp.life * 2);
-                outlinedText(pp.text, pp.x, pp.y, 22);
+                outlinedText(pp.text, pp.x, pp.y, 16);
             }
             ctx.globalAlpha = 1;
+
+            if (banner) {
+                const t = 1.6 - banner.life;
+                const s = 1 + Math.max(0, 0.3 - t) * 1.5;
+                ctx.globalAlpha = Math.min(1, banner.life * 2);
+                ctx.save();
+                ctx.translate(W / 2, 170);
+                ctx.scale(s, s);
+                outlinedText(banner.text, 0, 0, 34, true);
+                ctx.restore();
+                ctx.globalAlpha = 1;
+            }
 
             if (state === 'play' || state === 'paused') outlinedText(String(score), W / 2, 72, 52);
 
