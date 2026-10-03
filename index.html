@@ -2,462 +2,955 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Which Sex and the City Girl Are You Today?</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ffdfee">
+    <title>Heels Over Manhattan</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #ffeef8 0%, #fff5f0 100%);
-            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
             color: #5a4a4a;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: #fff;
+        #stage {
+            position: relative;
             border-radius: 24px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-            padding: 40px 30px;
-            text-align: center;
-            transition: all 0.3s ease;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
         }
 
-        h1 {
-            font-size: 28px;
-            color: #d4a5a5;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .subtitle {
-            font-size: 16px;
-            color: #8b7a7a;
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, #f4c2c2 0%, #e8b4b4 100%);
-            color: #fff;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(244, 194, 194, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(244, 194, 194, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .screen {
-            display: none;
-        }
-
-        .screen.active {
+        canvas {
             display: block;
-            animation: fadeIn 0.5s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+            pointer-events: none;
+        }
+
+        .overlay.active {
+            display: flex;
+            animation: fadeIn 0.35s ease;
+        }
+
+        .overlay > * {
+            pointer-events: auto;
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .question-container {
-            margin-bottom: 32px;
+        #menu {
+            justify-content: flex-start;
+            padding-top: 14%;
         }
 
-        .question-number {
+        #menu .tagline {
+            margin-bottom: 130px; /* leave room for the hovering shoe */
+        }
+
+        .title {
+            font-size: 34px;
+            line-height: 1.1;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 0 3px 0 #d98aa8, 0 6px 16px rgba(160, 80, 110, 0.35);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 15px;
+            color: #8b5a6a;
+            margin-bottom: 28px;
+        }
+
+        .hint {
             font-size: 14px;
-            color: #c4a5a5;
-            margin-bottom: 8px;
-            font-weight: 500;
+            color: #8b5a6a;
+            margin-top: 18px;
+            animation: pulse 1.4s ease-in-out infinite;
         }
 
-        .question-text {
-            font-size: 20px;
-            color: #5a4a4a;
-            margin-bottom: 24px;
-            line-height: 1.4;
-            font-weight: 500;
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.45; }
         }
 
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .option {
-            background: #faf8f8;
-            border: 2px solid #f0e8e8;
-            padding: 16px 20px;
-            border-radius: 16px;
+        .btn {
+            background: linear-gradient(135deg, #f4a3c0 0%, #e88aaf 100%);
+            color: #fff;
+            border: none;
+            padding: 14px 38px;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            font-size: 15px;
-            color: #5a4a4a;
-            line-height: 1.4;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            box-shadow: 0 4px 0 #c96f92, 0 8px 18px rgba(201, 111, 146, 0.35);
         }
 
-        .option:hover {
-            background: #fff5f5;
-            border-color: #f4c2c2;
-            transform: translateX(4px);
-        }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #c96f92; }
 
-        .option.selected {
-            background: #ffeef8;
-            border-color: #f4c2c2;
-            box-shadow: 0 2px 8px rgba(244, 194, 194, 0.2);
-        }
-
-        .progress-bar {
+        .card {
+            background: rgba(255, 255, 255, 0.94);
+            border-radius: 22px;
+            padding: 24px 28px;
             width: 100%;
-            height: 6px;
-            background: #f0e8e8;
-            border-radius: 10px;
-            margin-bottom: 24px;
-            overflow: hidden;
+            max-width: 280px;
+            box-shadow: 0 8px 28px rgba(140, 70, 100, 0.25);
+            margin-bottom: 22px;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f4c2c2 0%, #e8b4b4 100%);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-            width: 0%;
+        .card h2 {
+            font-size: 26px;
+            color: #d47a9c;
+            margin-bottom: 4px;
         }
 
-        .result-character {
-            font-size: 48px;
-            margin-bottom: 16px;
-        }
-
-        .result-name {
-            font-size: 32px;
-            color: #d4a5a5;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .result-description {
-            font-size: 16px;
-            color: #5a4a4a;
-            line-height: 1.7;
-            margin-bottom: 32px;
-            text-align: left;
-            background: #faf8f8;
-            padding: 24px;
-            border-radius: 16px;
-        }
-
-        .final-message {
+        .rank {
             font-size: 15px;
-            color: #8b7a7a;
             font-style: italic;
-            line-height: 1.6;
-            margin-top: 24px;
+            color: #8b7a7a;
+            margin-bottom: 18px;
         }
 
-        @media (max-width: 480px) {
-            .container {
-                padding: 30px 20px;
-            }
+        .badge {
+            font-size: 44px;
+            margin-bottom: 8px;
+        }
 
-            h1 {
-                font-size: 24px;
-            }
+        .stats {
+            display: flex;
+            justify-content: space-around;
+        }
 
-            .question-text {
-                font-size: 18px;
-            }
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #b89a9a;
+        }
 
-            .result-name {
-                font-size: 28px;
-            }
+        .stat-value {
+            font-size: 30px;
+            font-weight: 800;
+            color: #5a4a4a;
+        }
+
+        .new-best {
+            display: none;
+            margin-top: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            background: #e88aaf;
+            border-radius: 50px;
+            padding: 4px 12px;
+        }
+
+        .new-best.show { display: inline-block; }
+
+        .icon-btn {
+            position: absolute;
+            top: 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255, 255, 255, 0.75);
+            font-size: 18px;
+            cursor: pointer;
+            z-index: 5;
+            box-shadow: 0 2px 8px rgba(140, 70, 100, 0.2);
+        }
+
+        #muteBtn { right: 12px; }
+        #pauseBtn { left: 12px; display: none; }
+
+        .small-link {
+            margin-top: 16px;
+            font-size: 13px;
+            color: #b0708a;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Start Screen -->
-        <div id="startScreen" class="screen active">
-            <h1>Which Sex and the City Girl Are You Today?</h1>
-            <p class="subtitle">A little love story, told through choices 💕</p>
-            <button class="btn" onclick="startQuiz()">Start Quiz</button>
+    <div id="stage">
+        <canvas id="game"></canvas>
+
+        <button class="icon-btn" id="muteBtn" aria-label="Toggle sound">🔊</button>
+        <button class="icon-btn" id="pauseBtn" aria-label="Pause">⏸</button>
+
+        <!-- Menu -->
+        <div class="overlay active" id="menu">
+            <div class="title">Heels Over<br>Manhattan</div>
+            <p class="tagline">Fly through the skyline. Grab the cosmos. 🍸</p>
+            <button class="btn" id="playBtn">Play</button>
+            <p class="hint">Tap, click or press Space to flap</p>
+            <a class="small-link" href="quiz.html">Which girl are you today? Take the quiz →</a>
         </div>
 
-        <!-- Quiz Screen -->
-        <div id="quizScreen" class="screen">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill"></div>
-            </div>
-            <div class="question-container">
-                <div class="question-number" id="questionNumber"></div>
-                <div class="question-text" id="questionText"></div>
-                <div class="options" id="options"></div>
-            </div>
+        <!-- Paused -->
+        <div class="overlay" id="paused">
+            <div class="title">Paused</div>
+            <button class="btn" id="resumeBtn">Resume</button>
         </div>
 
-        <!-- Result Screen -->
-        <div id="resultScreen" class="screen">
-            <div class="result-character" id="resultEmoji"></div>
-            <div class="result-name" id="resultName"></div>
-            <div class="result-description" id="resultDescription"></div>
-            <p class="final-message">
-                Some loves are complicated, but they shape who we are 💙<br>
-                And this little game was made just for you.
-            </p>
-            <button class="btn" onclick="resetQuiz()" style="margin-top: 24px;">Play Again</button>
+        <!-- Game over -->
+        <div class="overlay" id="gameover">
+            <div class="card">
+                <div class="badge" id="badge">👠</div>
+                <h2>Game Over</h2>
+                <p class="rank" id="rank"></p>
+                <div class="stats">
+                    <div>
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="finalScore">0</div>
+                    </div>
+                    <div>
+                        <div class="stat-label">Best</div>
+                        <div class="stat-value" id="bestScore">0</div>
+                    </div>
+                </div>
+                <span class="new-best" id="newBest">New best!</span>
+            </div>
+            <button class="btn" id="retryBtn">Play Again</button>
         </div>
     </div>
 
     <script>
-        // Character scores
-        let scores = {
-            carrie: 0,
-            miranda: 0,
-            samantha: 0,
-            charlotte: 0
-        };
+        // ---------- Setup ----------
+        const W = 360;            // logical world size; scaled to fit the screen
+        const H = 640;
+        const GROUND_H = 64;
+        const PLAY_H = H - GROUND_H;
 
-        let currentQuestion = 0;
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const stage = document.getElementById('stage');
 
-        // Quiz questions with subtle SATC references
-        const questions = [
-            {
-                text: "You've been seeing someone amazing, but they're emotionally distant. After weeks of mixed signals, they finally reach out. What do you do?",
-                options: [
-                    { text: "Give them another chance—love is worth the complexity", character: "carrie" },
-                    { text: "Set clear boundaries and see if they can meet your needs", character: "miranda" },
-                    { text: "Move on. Life's too short for games", character: "samantha" },
-                    { text: "Talk it through gently—maybe they just need reassurance", character: "charlotte" }
-                ]
-            },
-            {
-                text: "Your partner keeps canceling plans last minute, but when you're together, everything feels perfect. How do you handle it?",
-                options: [
-                    { text: "Keep hoping they'll change—the connection feels too real to walk away from", character: "carrie" },
-                    { text: "Have a direct conversation about respect and reliability", character: "miranda" },
-                    { text: "Stop making yourself available. You deserve better", character: "samantha" },
-                    { text: "Try to understand their situation and be patient", character: "charlotte" }
-                ]
-            },
-            {
-                text: "You're torn between someone safe and stable, and someone who makes your heart race but brings uncertainty. What guides your choice?",
-                options: [
-                    { text: "Follow your heart, even if it's complicated", character: "carrie" },
-                    { text: "Choose stability—emotions can be unreliable", character: "miranda" },
-                    { text: "Go with what excites you—you can handle the uncertainty", character: "samantha" },
-                    { text: "Look for someone who offers both safety and passion", character: "charlotte" }
-                ]
-            },
-            {
-                text: "After months apart, someone from your past returns with a grand gesture. They say they've changed. How do you respond?",
-                options: [
-                    { text: "Consider it—maybe timing was the issue before", character: "carrie" },
-                    { text: "Be cautious. Past patterns often repeat themselves", character: "miranda" },
-                    { text: "Enjoy the moment, but keep your options open", character: "samantha" },
-                    { text: "Give them a chance if they're truly showing growth", character: "charlotte" }
-                ]
-            },
-            {
-                text: "You're in a relationship that's good on paper, but something feels missing. Your friends think you should stay. What do you do?",
-                options: [
-                    { text: "Listen to your heart—you can't ignore that feeling", character: "carrie" },
-                    { text: "Analyze what's missing and see if it's fixable", character: "miranda" },
-                    { text: "Trust your gut and make space for what you really want", character: "samantha" },
-                    { text: "Work on finding the missing piece together", character: "charlotte" }
-                ]
-            },
-            {
-                text: "Someone you care about keeps coming back into your life, but never fully commits. You're tired of the cycle. What's your move?",
-                options: [
-                    { text: "Keep the door open—maybe this time will be different", character: "carrie" },
-                    { text: "Close the door. You need consistency, not promises", character: "miranda" },
-                    { text: "Enjoy the connection when it's there, but don't wait around", character: "samantha" },
-                    { text: "Have one honest conversation about what you both want", character: "charlotte" }
-                ]
-            },
-            {
-                text: "You're choosing between a weekend plan: a romantic getaway with someone new, or a quiet night with close friends. What calls to you?",
-                options: [
-                    { text: "The romantic getaway—love stories are worth exploring", character: "carrie" },
-                    { text: "Time with friends—they're your real support system", character: "miranda" },
-                    { text: "The getaway—new experiences are always worth it", character: "samantha" },
-                    { text: "Friends, but maybe invite the new person along", character: "charlotte" }
-                ]
-            },
-            {
-                text: "You've been waiting for someone to be ready for a real relationship. They keep saying 'soon.' How long do you wait?",
-                options: [
-                    { text: "As long as it takes—if the connection is real, it's worth waiting for", character: "carrie" },
-                    { text: "Set a timeline. If they're not ready, you need to move forward", character: "miranda" },
-                    { text: "Don't wait. Live your life and let them catch up if they want", character: "samantha" },
-                    { text: "Give them a gentle deadline and see if they step up", character: "charlotte" }
-                ]
-            },
-            {
-                text: "You're at a crossroads: pursue a career opportunity in another city, or stay for a relationship that's just starting to deepen. What do you choose?",
-                options: [
-                    { text: "Stay—love might be the bigger opportunity", character: "carrie" },
-                    { text: "Take the career move—you can make long distance work if it's meant to be", character: "miranda" },
-                    { text: "Go for the career—you'll find love wherever you are", character: "samantha" },
-                    { text: "Try to find a way to have both—compromise is possible", character: "charlotte" }
-                ]
-            },
-            {
-                text: "Someone tells you they love you, but their actions don't always match their words. How do you respond?",
-                options: [
-                    { text: "Believe the words and hope the actions will follow", character: "carrie" },
-                    { text: "Actions speak louder. Address the inconsistency directly", character: "miranda" },
-                    { text: "Take it for what it is—enjoy the moment, but don't overthink it", character: "samantha" },
-                    { text: "Express your need for consistency and see if they understand", character: "charlotte" }
-                ]
-            }
-        ];
+        function resize() {
+            const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+            const cssW = Math.floor(W * scale);
+            const cssH = Math.floor(H * scale);
+            const dpr = Math.min(window.devicePixelRatio || 1, 3);
+            stage.style.width = cssW + 'px';
+            stage.style.height = cssH + 'px';
+            stage.style.borderRadius = (cssW < window.innerWidth - 8) ? '24px' : '0';
+            canvas.width = Math.round(cssW * dpr);
+            canvas.height = Math.round(cssH * dpr);
+            ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
+        }
+        window.addEventListener('resize', resize);
+        resize();
 
-        // Character results
-        const characters = {
-            carrie: {
-                emoji: "💕",
-                name: "You're a Carrie",
-                description: "You're a romantic at heart, drawn to the complexity of love and relationships. You believe in second chances and the power of connection, even when it's complicated. Like Carrie, you're reflective, emotional, and willing to follow your heart—even when logic suggests otherwise. You understand that some loves are messy, but you're not afraid to explore them. Your romantic nature means you see the beauty in complicated stories, and you're always searching for that deep, meaningful connection that makes everything else fade away."
-            },
-            miranda: {
-                emoji: "💼",
-                name: "You're a Miranda",
-                description: "You're practical, strong, and value honesty above all. Like Miranda, you're not afraid to speak your truth and set boundaries. You believe in logic, reliability, and building relationships on a solid foundation. You're career-focused and independent, and you don't have time for games or mixed signals. You know your worth and expect others to meet you at your level. While you're not opposed to romance, you want it to be real, consistent, and built on mutual respect. You're the friend people turn to for honest advice, and you're not afraid to make tough decisions when they're necessary."
-            },
-            samantha: {
-                emoji: "✨",
-                name: "You're a Samantha",
-                description: "You're confident, bold, and unapologetically yourself. Like Samantha, you live life on your own terms and don't wait around for anyone. You're fearless in relationships and know that you deserve the best. You're not afraid to walk away from situations that don't serve you, and you believe in living in the moment. You're independent, free-spirited, and you know that you don't need anyone to complete you—you're already whole. You embrace your desires and aren't afraid to go after what you want, whether it's in love, career, or life in general."
-            },
-            charlotte: {
-                emoji: "🌹",
-                name: "You're a Charlotte",
-                description: "You're kind, romantic, and believe in the power of love and tradition. Like Charlotte, you're emotionally sensitive and value deep, meaningful connections. You're optimistic about relationships and believe in working through challenges together. You're nurturing and caring, always trying to understand others and create harmony. You believe in fairy tales and happy endings, but you're also willing to put in the work to make them happen. You're traditional in your values but open to growth, and you believe that love, when it's real, is worth fighting for and building something beautiful together."
-            }
-        };
+        // ---------- Tuning ----------
+        const GRAVITY = 1500;
+        const FLAP_VY = -440;
+        const MAX_FALL = 620;
+        const PIPE_W = 66;
+        const PIPE_SPACING = 210;
+        const START_SPEED = 150;
+        const MAX_SPEED = 235;
+        const START_GAP = 172;
+        const MIN_GAP = 128;
+        const COSMO_CHANCE = 0.35;
+        const COSMO_POINTS = 2;
 
-        function startQuiz() {
-            document.getElementById('startScreen').classList.remove('active');
-            document.getElementById('quizScreen').classList.add('active');
-            showQuestion();
+        const PALETTE = ['#f7c6d9', '#e9c4f0', '#c9d8f5', '#fbd5c0', '#f5b8cc', '#d8c8f2'];
+
+        // ---------- Storage (best-effort) ----------
+        function loadNum(key) {
+            try { return parseInt(localStorage.getItem(key), 10) || 0; } catch (e) { return 0; }
+        }
+        function save(key, val) {
+            try { localStorage.setItem(key, String(val)); } catch (e) { /* ignore */ }
         }
 
-        function showQuestion() {
-            const question = questions[currentQuestion];
-            document.getElementById('questionNumber').textContent = `Question ${currentQuestion + 1} of ${questions.length}`;
-            document.getElementById('questionText').textContent = question.text;
-            
-            // Update progress bar
-            const progress = ((currentQuestion + 1) / questions.length) * 100;
-            document.getElementById('progressFill').style.width = progress + '%';
-            
-            // Clear and populate options
-            const optionsContainer = document.getElementById('options');
-            optionsContainer.innerHTML = '';
-            
-            question.options.forEach((option, index) => {
-                const optionElement = document.createElement('div');
-                optionElement.className = 'option';
-                optionElement.textContent = option.text;
-                optionElement.onclick = () => selectOption(index, option.character);
-                optionsContainer.appendChild(optionElement);
+        let best = loadNum('hom_best');
+        let muted = (() => { try { return localStorage.getItem('hom_muted') === '1'; } catch (e) { return false; } })();
+
+        // ---------- Audio ----------
+        let audio = null;
+        function ensureAudio() {
+            if (audio) {
+                if (audio.state === 'suspended') audio.resume();
+                return;
+            }
+            const AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) audio = new AC();
+        }
+
+        function tone(freq, dur, type = 'sine', vol = 0.15, slideTo = null, delay = 0) {
+            if (muted || !audio) return;
+            const t = audio.currentTime + delay;
+            const osc = audio.createOscillator();
+            const gain = audio.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, t);
+            if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+            gain.gain.setValueAtTime(vol, t);
+            gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+            osc.connect(gain).connect(audio.destination);
+            osc.start(t);
+            osc.stop(t + dur + 0.02);
+        }
+
+        const sfx = {
+            flap: () => tone(520, 0.09, 'triangle', 0.12, 820),
+            score: () => { tone(880, 0.08, 'sine', 0.12); tone(1320, 0.12, 'sine', 0.12, null, 0.07); },
+            cosmo: () => [660, 880, 1100, 1320].forEach((f, i) => tone(f, 0.1, 'triangle', 0.1, null, i * 0.05)),
+            hit: () => { tone(220, 0.25, 'square', 0.12, 60); tone(110, 0.35, 'sawtooth', 0.08, 40, 0.05); }
+        };
+
+        const muteBtn = document.getElementById('muteBtn');
+        function renderMute() { muteBtn.textContent = muted ? '🔇' : '🔊'; }
+        renderMute();
+        muteBtn.addEventListener('pointerdown', e => e.stopPropagation());
+        muteBtn.addEventListener('click', e => {
+            e.stopPropagation();
+            muted = !muted;
+            save('hom_muted', muted ? 1 : 0);
+            renderMute();
+            ensureAudio();
+        });
+
+        // ---------- Game state ----------
+        let state = 'menu';       // menu | play | paused | dead
+        let player, pipes, particles, popups, score, speed, distSincePipe;
+        let groundX = 0, cloudsX = 0, skylineX = 0;
+        let shake = 0, flash = 0, deadAt = 0, time = 0;
+
+        const rand = (a, b) => a + Math.random() * (b - a);
+        const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+        // Background skyline is generated once and tiled.
+        const SKYLINE_W = 720;
+        const skyline = [];
+        (function buildSkyline() {
+            let x = 0;
+            while (x < SKYLINE_W) {
+                const w = rand(26, 58);
+                skyline.push({ x, w, h: rand(70, 190), spire: Math.random() < 0.18 });
+                x += w + rand(2, 8);
+            }
+        })();
+
+        const clouds = Array.from({ length: 5 }, (_, i) => ({
+            x: i * 110 + rand(0, 40), y: rand(40, 220), s: rand(0.7, 1.3)
+        }));
+
+        function reset() {
+            player = { x: 92, y: PLAY_H * 0.45, vy: 0, r: 13, rot: 0, wing: 0 };
+            pipes = [];
+            particles = [];
+            popups = [];
+            score = 0;
+            speed = START_SPEED;
+            distSincePipe = PIPE_SPACING - 40;
+        }
+        reset();
+
+        function difficulty() {
+            const t = clamp(score / 40, 0, 1);
+            return {
+                speed: START_SPEED + (MAX_SPEED - START_SPEED) * t,
+                gap: START_GAP - (START_GAP - MIN_GAP) * t
+            };
+        }
+
+        function spawnPipe() {
+            const { gap } = difficulty();
+            const margin = 70;
+            // Keep consecutive gaps reachable: limit vertical jump from the previous gap.
+            const prev = pipes.length ? pipes[pipes.length - 1].gapY : PLAY_H / 2;
+            const lo = Math.max(margin + gap / 2, prev - 190);
+            const hi = Math.min(PLAY_H - margin - gap / 2, prev + 190);
+            const gapY = rand(lo, hi);
+            pipes.push({
+                x: W + 10,
+                gapY,
+                gap,
+                color: PALETTE[Math.floor(Math.random() * PALETTE.length)],
+                topWater: Math.random() < 0.5,
+                scored: false,
+                cosmo: Math.random() < COSMO_CHANCE ? { taken: false, bob: rand(0, Math.PI * 2) } : null
             });
         }
 
-        function selectOption(index, character) {
-            // Add score
-            scores[character]++;
-            
-            // Visual feedback
-            const options = document.querySelectorAll('.option');
-            options[index].classList.add('selected');
-            
-            // Move to next question after a brief delay
-            setTimeout(() => {
-                currentQuestion++;
-                if (currentQuestion < questions.length) {
-                    showQuestion();
+        // ---------- Input ----------
+        function flap() {
+            ensureAudio();
+            if (state === 'menu') { startGame(); return; }
+            if (state === 'dead') {
+                if (performance.now() - deadAt > 650) startGame();
+                return;
+            }
+            if (state !== 'play') return;
+            player.vy = FLAP_VY;
+            player.wing = 1;
+            sfx.flap();
+            for (let i = 0; i < 4; i++) {
+                particles.push({
+                    x: player.x - 10, y: player.y + 6,
+                    vx: rand(-90, -30), vy: rand(-20, 60),
+                    life: 0.4, max: 0.4, size: rand(2, 4), color: '#ffffff'
+                });
+            }
+        }
+
+        stage.addEventListener('pointerdown', e => {
+            if (e.target.closest('button, a')) return;
+            e.preventDefault();
+            flap();
+        });
+
+        window.addEventListener('keydown', e => {
+            if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+                e.preventDefault();
+                if (e.repeat) return;
+                if (state === 'paused') resume(); else flap();
+            } else if (e.code === 'KeyP' || e.code === 'Escape') {
+                if (state === 'play') pause(); else if (state === 'paused') resume();
+            } else if (e.code === 'KeyM') {
+                muteBtn.click();
+            }
+        });
+
+        const overlays = {
+            menu: document.getElementById('menu'),
+            paused: document.getElementById('paused'),
+            gameover: document.getElementById('gameover')
+        };
+        const pauseBtn = document.getElementById('pauseBtn');
+
+        function showOverlay(name) {
+            for (const [k, el] of Object.entries(overlays)) el.classList.toggle('active', k === name);
+            pauseBtn.style.display = state === 'play' ? 'block' : 'none';
+        }
+
+        function startGame() {
+            reset();
+            state = 'play';
+            showOverlay(null);
+            player.vy = FLAP_VY;
+            sfx.flap();
+        }
+
+        function pause() { state = 'paused'; showOverlay('paused'); }
+        function resume() { state = 'play'; showOverlay(null); lastT = performance.now(); }
+
+        document.getElementById('playBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
+        document.getElementById('retryBtn').addEventListener('click', () => { ensureAudio(); startGame(); });
+        document.getElementById('resumeBtn').addEventListener('click', resume);
+        pauseBtn.addEventListener('click', pause);
+        document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'play') pause(); });
+
+        // ---------- Game over ----------
+        const RANKS = [
+            { min: 40, badge: '👑', text: 'Absolutely fabulous.' },
+            { min: 25, badge: '🍸', text: 'Cosmo Queen' },
+            { min: 15, badge: '👜', text: 'Fifth Avenue Regular' },
+            { min: 5, badge: '👠', text: 'Brunch Material' },
+            { min: 0, badge: '☕', text: 'Just browsing, darling.' }
+        ];
+
+        function die() {
+            if (state !== 'play') return;
+            state = 'dead';
+            deadAt = performance.now();
+            shake = 12;
+            flash = 1;
+            sfx.hit();
+            for (let i = 0; i < 18; i++) {
+                particles.push({
+                    x: player.x, y: player.y,
+                    vx: rand(-200, 200), vy: rand(-260, 80),
+                    life: 0.8, max: 0.8, size: rand(2, 5),
+                    color: ['#f4a3c0', '#ffffff', '#e9c4f0'][i % 3], gravity: true
+                });
+            }
+            const isBest = score > best;
+            if (isBest) { best = score; save('hom_best', best); }
+            const rank = RANKS.find(r => score >= r.min);
+            document.getElementById('badge').textContent = rank.badge;
+            document.getElementById('rank').textContent = rank.text;
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('bestScore').textContent = best;
+            document.getElementById('newBest').classList.toggle('show', isBest && score > 0);
+            setTimeout(() => { if (state === 'dead') showOverlay('gameover'); }, 550);
+            pauseBtn.style.display = 'none';
+        }
+
+        // ---------- Collision ----------
+        function circleRect(cx, cy, r, rx, ry, rw, rh) {
+            const nx = clamp(cx, rx, rx + rw);
+            const ny = clamp(cy, ry, ry + rh);
+            const dx = cx - nx, dy = cy - ny;
+            return dx * dx + dy * dy < r * r;
+        }
+
+        // ---------- Update ----------
+        function update(dt) {
+            time += dt;
+            shake = Math.max(0, shake - dt * 40);
+            flash = Math.max(0, flash - dt * 3);
+
+            const scrolling = state === 'menu' || state === 'play';
+            const scrollSpeed = state === 'menu' ? START_SPEED : speed;
+            if (scrolling) {
+                groundX = (groundX + scrollSpeed * dt) % 24;
+                skylineX = (skylineX + scrollSpeed * 0.25 * dt) % SKYLINE_W;
+                cloudsX += scrollSpeed * 0.08 * dt;
+            }
+
+            if (state === 'menu') {
+                player.y = PLAY_H * 0.45 + Math.sin(time * 3) * 10;
+                player.rot = Math.sin(time * 3) * 0.08;
+                player.wing = (Math.sin(time * 12) + 1) / 2;
+            }
+
+            if (state === 'play') {
+                const diff = difficulty();
+                speed = diff.speed;
+
+                player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL);
+                player.y += player.vy * dt;
+                player.wing = Math.max(0, player.wing - dt * 5);
+                const targetRot = clamp(player.vy / 650, -0.45, 1.3);
+                player.rot += (targetRot - player.rot) * Math.min(1, dt * 10);
+
+                if (player.y - player.r < 0) { player.y = player.r; player.vy = 0; }
+
+                distSincePipe += speed * dt;
+                if (distSincePipe >= PIPE_SPACING) {
+                    distSincePipe -= PIPE_SPACING;
+                    spawnPipe();
+                }
+
+                for (const p of pipes) {
+                    p.x -= speed * dt;
+
+                    if (!p.scored && p.x + PIPE_W < player.x) {
+                        p.scored = true;
+                        score++;
+                        sfx.score();
+                    }
+
+                    const hitR = player.r - 2; // a little forgiveness
+                    const topH = p.gapY - p.gap / 2;
+                    const botY = p.gapY + p.gap / 2;
+                    if (circleRect(player.x, player.y, hitR, p.x, -50, PIPE_W, topH + 50) ||
+                        circleRect(player.x, player.y, hitR, p.x, botY, PIPE_W, PLAY_H - botY)) {
+                        die();
+                    }
+
+                    if (p.cosmo && !p.cosmo.taken) {
+                        const cx = p.x + PIPE_W / 2;
+                        const cy = p.gapY + Math.sin(time * 3 + p.cosmo.bob) * 8;
+                        if (Math.hypot(player.x - cx, player.y - cy) < player.r + 14) {
+                            p.cosmo.taken = true;
+                            score += COSMO_POINTS;
+                            sfx.cosmo();
+                            popups.push({ x: cx, y: cy - 10, text: '+' + COSMO_POINTS, life: 0.9 });
+                            for (let i = 0; i < 12; i++) {
+                                const a = (i / 12) * Math.PI * 2;
+                                particles.push({
+                                    x: cx, y: cy, vx: Math.cos(a) * 140, vy: Math.sin(a) * 140,
+                                    life: 0.5, max: 0.5, size: 3, color: i % 2 ? '#ff7fae' : '#ffe680', star: true
+                                });
+                            }
+                        }
+                    }
+                }
+                pipes = pipes.filter(p => p.x + PIPE_W > -20);
+
+                if (player.y + player.r >= PLAY_H) {
+                    player.y = PLAY_H - player.r;
+                    die();
+                }
+            }
+
+            if (state === 'dead') {
+                // Tumble down to the sidewalk.
+                if (player.y + player.r < PLAY_H) {
+                    player.vy = Math.min(player.vy + GRAVITY * dt, MAX_FALL * 1.4);
+                    player.y = Math.min(player.y + player.vy * dt, PLAY_H - player.r);
+                    player.rot = Math.min(player.rot + dt * 8, Math.PI / 2);
+                }
+            }
+
+            for (const pt of particles) {
+                pt.life -= dt;
+                pt.x += pt.vx * dt;
+                pt.y += pt.vy * dt;
+                if (pt.gravity) pt.vy += 900 * dt;
+            }
+            particles = particles.filter(pt => pt.life > 0);
+
+            for (const pp of popups) { pp.life -= dt; pp.y -= 40 * dt; }
+            popups = popups.filter(pp => pp.life > 0);
+        }
+
+        // ---------- Drawing ----------
+        function roundRect(x, y, w, h, r) {
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.arcTo(x + w, y, x + w, y + h, r);
+            ctx.arcTo(x + w, y + h, x, y + h, r);
+            ctx.arcTo(x, y + h, x, y, r);
+            ctx.arcTo(x, y, x + w, y, r);
+            ctx.closePath();
+        }
+
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, PLAY_H);
+        skyGrad.addColorStop(0, '#ffd6e8');
+        skyGrad.addColorStop(0.55, '#ffe9de');
+        skyGrad.addColorStop(1, '#fff6e6');
+
+        function drawBackground() {
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, PLAY_H);
+
+            // Sun
+            ctx.fillStyle = 'rgba(255, 240, 200, 0.9)';
+            ctx.beginPath();
+            ctx.arc(270, 150, 46, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Clouds
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            for (const c of clouds) {
+                const span = W + 160;
+                const x = ((c.x - cloudsX) % span + span) % span - 80;
+                for (const [dx, dy, rx, ry] of [[0, 0, 34, 13], [18, -9, 22, 14], [-16, -5, 18, 11]]) {
+                    ctx.beginPath();
+                    ctx.ellipse(x + dx * c.s, c.y + dy * c.s, rx * c.s, ry * c.s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Distant skyline (tiled twice for seamless scroll)
+            ctx.fillStyle = 'rgba(214, 160, 196, 0.45)';
+            for (let tile = 0; tile < 2; tile++) {
+                const ox = tile * SKYLINE_W - skylineX;
+                for (const b of skyline) {
+                    const x = ox + b.x;
+                    if (x > W || x + b.w < 0) continue;
+                    ctx.fillRect(x, PLAY_H - b.h, b.w, b.h);
+                    if (b.spire) {
+                        ctx.beginPath();
+                        ctx.moveTo(x + b.w * 0.3, PLAY_H - b.h);
+                        ctx.lineTo(x + b.w / 2, PLAY_H - b.h - 40);
+                        ctx.lineTo(x + b.w * 0.7, PLAY_H - b.h);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function drawWindows(x, y, w, h, fromTop) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            const cols = 3, ww = 10, wh = 12, gx = (w - 16 - cols * ww) / (cols - 1);
+            const rows = Math.floor((h - 20) / 24);
+            for (let r = 0; r < rows; r++) {
+                const wy = fromTop ? y + h - 24 - r * 24 : y + 18 + r * 24;
+                for (let c = 0; c < cols; c++) {
+                    ctx.fillRect(x + 8 + c * (ww + gx), wy, ww, wh);
+                }
+            }
+        }
+
+        function drawBuilding(p) {
+            const topH = p.gapY - p.gap / 2;
+            const botY = p.gapY + p.gap / 2;
+            const x = p.x;
+
+            // Top building (hanging from the sky)
+            ctx.fillStyle = p.color;
+            ctx.fillRect(x, -10, PIPE_W, topH + 10);
+            drawWindows(x, -10, PIPE_W, topH + 10, true);
+            ctx.fillStyle = 'rgba(120, 70, 100, 0.25)';
+            roundRect(x - 5, topH - 14, PIPE_W + 10, 14, 4);
+            ctx.fill();
+            ctx.fillStyle = p.color;
+            roundRect(x - 4, topH - 15, PIPE_W + 8, 12, 4);
+            ctx.fill();
+
+            // Bottom building
+            ctx.fillStyle = p.color;
+            ctx.fillRect(x, botY, PIPE_W, PLAY_H - botY);
+            drawWindows(x, botY + 12, PIPE_W, PLAY_H - botY - 12, false);
+            ctx.fillStyle = 'rgba(120, 70, 100, 0.25)';
+            roundRect(x - 5, botY, PIPE_W + 10, 14, 4);
+            ctx.fill();
+            ctx.fillStyle = p.color;
+            roundRect(x - 4, botY - 1, PIPE_W + 8, 12, 4);
+            ctx.fill();
+
+            // Water tower on some rooftops
+            if (p.topWater && PLAY_H - botY > 40) {
+                const tx = x + PIPE_W - 24, ty = botY - 24;
+                ctx.strokeStyle = '#a77b8f';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(tx + 3, ty + 14); ctx.lineTo(tx + 1, botY);
+                ctx.moveTo(tx + 13, ty + 14); ctx.lineTo(tx + 15, botY);
+                ctx.stroke();
+                ctx.fillStyle = '#c99a8a';
+                roundRect(tx, ty, 16, 15, 3);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.moveTo(tx - 1, ty + 1); ctx.lineTo(tx + 8, ty - 7); ctx.lineTo(tx + 17, ty + 1);
+                ctx.fill();
+            }
+
+            // Subtle side shading
+            ctx.fillStyle = 'rgba(120, 70, 100, 0.12)';
+            ctx.fillRect(x + PIPE_W - 10, -10, 10, topH - 5);
+            ctx.fillRect(x + PIPE_W - 10, botY + 11, 10, PLAY_H - botY);
+        }
+
+        function drawCosmo(cx, cy) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            // Glow
+            ctx.fillStyle = 'rgba(255, 230, 128, 0.35)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 18 + Math.sin(time * 6) * 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Glass bowl
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.beginPath();
+            ctx.moveTo(-13, -10); ctx.lineTo(13, -10); ctx.lineTo(0, 4); ctx.closePath();
+            ctx.fill();
+            // Cosmo
+            ctx.fillStyle = '#ff6f9f';
+            ctx.beginPath();
+            ctx.moveTo(-10, -7); ctx.lineTo(10, -7); ctx.lineTo(0, 3); ctx.closePath();
+            ctx.fill();
+            // Stem & base
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 4); ctx.lineTo(0, 13);
+            ctx.moveTo(-6, 13); ctx.lineTo(6, 13);
+            ctx.stroke();
+            // Lime wedge
+            ctx.fillStyle = '#9ad66b';
+            ctx.beginPath();
+            ctx.arc(10, -10, 4, Math.PI, 0);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(player.rot);
+            ctx.scale(1.2, 1.2);
+
+            // Wing (behind)
+            const flapAmt = 0.35 + player.wing * 0.9;
+            ctx.save();
+            ctx.translate(-2, -6);
+            ctx.rotate(-0.5 - player.wing * 0.7);
+            ctx.scale(1, flapAmt);
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#e7b6c9';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(-6, -8, 7, 13, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(2, -9, 6, 11, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+
+            // Stiletto heel spike
+            ctx.fillStyle = '#c2185b';
+            ctx.beginPath();
+            ctx.moveTo(-15, 6);
+            ctx.lineTo(-11, 6);
+            ctx.lineTo(-12, 19);
+            ctx.lineTo(-14, 19);
+            ctx.closePath();
+            ctx.fill();
+
+            // Shoe body
+            ctx.fillStyle = '#ff5c97';
+            ctx.beginPath();
+            ctx.moveTo(-16, 7);
+            ctx.quadraticCurveTo(-18, -6, -10, -7);
+            ctx.quadraticCurveTo(-6, -2, 0, 0);
+            ctx.quadraticCurveTo(10, 2, 16, 6);
+            ctx.quadraticCurveTo(19, 9, 16, 11);
+            ctx.lineTo(4, 11);
+            ctx.quadraticCurveTo(-6, 11, -16, 7);
+            ctx.closePath();
+            ctx.fill();
+
+            // Red sole peek
+            ctx.strokeStyle = '#d81b45';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-14, 8);
+            ctx.quadraticCurveTo(-4, 12, 15, 11);
+            ctx.stroke();
+
+            // Inner lining
+            ctx.fillStyle = '#ffd1e0';
+            ctx.beginPath();
+            ctx.moveTo(-12, -4);
+            ctx.quadraticCurveTo(-7, 0, 0, 1.5);
+            ctx.quadraticCurveTo(-8, 3, -13, 1);
+            ctx.closePath();
+            ctx.fill();
+
+            // Shine
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.beginPath();
+            ctx.ellipse(8, 4, 4, 1.5, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawGround() {
+            // Sidewalk
+            ctx.fillStyle = '#e8d3d8';
+            ctx.fillRect(0, PLAY_H, W, GROUND_H);
+            ctx.fillStyle = '#d4b5bf';
+            ctx.fillRect(0, PLAY_H, W, 6);
+            // Paving joints
+            ctx.fillStyle = 'rgba(160, 110, 130, 0.35)';
+            for (let x = -groundX; x < W; x += 24) {
+                ctx.fillRect(x, PLAY_H + 6, 2, 22);
+            }
+            // Road with taxi-yellow dashes
+            ctx.fillStyle = '#bfa6b0';
+            ctx.fillRect(0, PLAY_H + 28, W, GROUND_H - 28);
+            ctx.fillStyle = '#ffd95a';
+            for (let x = -groundX * 2 % 48; x < W; x += 48) {
+                ctx.fillRect(x, PLAY_H + 44, 24, 4);
+            }
+        }
+
+        function drawParticles() {
+            for (const pt of particles) {
+                ctx.globalAlpha = Math.max(0, pt.life / pt.max);
+                ctx.fillStyle = pt.color;
+                if (pt.star) {
+                    ctx.save();
+                    ctx.translate(pt.x, pt.y);
+                    ctx.rotate(time * 8);
+                    ctx.fillRect(-pt.size, -1, pt.size * 2, 2);
+                    ctx.fillRect(-1, -pt.size, 2, pt.size * 2);
+                    ctx.restore();
                 } else {
-                    showResult();
-                }
-            }, 500);
-        }
-
-        function showResult() {
-            document.getElementById('quizScreen').classList.remove('active');
-            document.getElementById('resultScreen').classList.add('active');
-            
-            // Find character with highest score
-            let maxScore = 0;
-            let resultCharacter = 'carrie';
-            
-            for (const [character, score] of Object.entries(scores)) {
-                if (score > maxScore) {
-                    maxScore = score;
-                    resultCharacter = character;
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+                    ctx.fill();
                 }
             }
-            
-            // Handle ties (prefer carrie, then charlotte, then miranda, then samantha)
-            if (maxScore === scores.carrie && scores.carrie === scores.charlotte) {
-                resultCharacter = 'carrie';
-            } else if (maxScore === scores.miranda && scores.miranda === scores.samantha) {
-                resultCharacter = 'miranda';
-            }
-            
-            const result = characters[resultCharacter];
-            document.getElementById('resultEmoji').textContent = result.emoji;
-            document.getElementById('resultName').textContent = result.name;
-            document.getElementById('resultDescription').textContent = result.description;
+            ctx.globalAlpha = 1;
         }
 
-        function resetQuiz() {
-            // Reset scores and question index
-            scores = {
-                carrie: 0,
-                miranda: 0,
-                samantha: 0,
-                charlotte: 0
-            };
-            currentQuestion = 0;
-            
-            // Show start screen
-            document.getElementById('resultScreen').classList.remove('active');
-            document.getElementById('startScreen').classList.add('active');
+        function outlinedText(text, x, y, size) {
+            ctx.font = `800 ${size}px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = size / 6;
+            ctx.strokeStyle = '#c96f92';
+            ctx.strokeText(text, x, y);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(text, x, y);
         }
+
+        function draw() {
+            ctx.save();
+            if (shake > 0) ctx.translate(rand(-shake, shake) * 0.5, rand(-shake, shake) * 0.5);
+
+            drawBackground();
+            for (const p of pipes) drawBuilding(p);
+            for (const p of pipes) {
+                if (p.cosmo && !p.cosmo.taken) {
+                    drawCosmo(p.x + PIPE_W / 2, p.gapY + Math.sin(time * 3 + p.cosmo.bob) * 8);
+                }
+            }
+            drawGround();
+            drawParticles();
+            drawPlayer();
+
+            for (const pp of popups) {
+                ctx.globalAlpha = Math.min(1, pp.life * 2);
+                outlinedText(pp.text, pp.x, pp.y, 22);
+            }
+            ctx.globalAlpha = 1;
+
+            if (state === 'play' || state === 'paused') outlinedText(String(score), W / 2, 72, 52);
+
+            ctx.restore();
+
+            if (flash > 0) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${flash * 0.7})`;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        // ---------- Main loop (fixed timestep for consistent physics) ----------
+        const STEP = 1 / 120;
+        let lastT = performance.now();
+        let acc = 0;
+
+        function frame(now) {
+            let dt = (now - lastT) / 1000;
+            lastT = now;
+            if (dt > 0.1) dt = 0.1; // avoid spiral after tab switches
+            if (state !== 'paused') {
+                acc += dt;
+                while (acc >= STEP) {
+                    update(STEP);
+                    acc -= STEP;
+                }
+            }
+            draw();
+            requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
     </script>
 </body>
 </html>
